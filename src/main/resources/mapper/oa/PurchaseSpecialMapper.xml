@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.oa.dao.PurchaseSpecialDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.vo.result.PurchaseSpecialVo" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="documentNumber" column="document_number"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="cityFirm" column="city_firm"/>
+        <result property="originalDep" column="original_dep"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="ownedPurchasLine" column="owned_purchas_line"/>
+        <result property="purchasingType" column="purchasing_type"/>
+        <result property="singleSourceClause" column="single_source_clause"/>
+        <result property="pricingModel" column="pricing_model"/>
+        <result property="estimatedAmount" column="estimated_amount"/>
+        <result property="procurementModel" column="procurement_model"/>
+        <result property="sysForPurchasingMethod" column="sys_for_purchasing_method"/>
+        <result property="changedPurchasingMethod" column="changed_purchasing_method"/>
+        <result property="partyA" column="party_a"/>
+        <result property="partyB" column="party_b"/>
+        <result property="contractExecutionTime" column="contract_execution_time"/>
+        <result property="processDescription" column="process_description"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="hasRead" column="has_read"/>
+        <result property="monitorStatus" column="monitor_status"/>
+        <result property="alertNode" column="alert_node"/>
+        <result property="mixedField" column="mixed_field"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="finishType" column="finish_type"/>
+    </resultMap>
+
+
+    <select id="list" resultMap="result">
+        SELECT t.uid,
+        t.id,
+        t.document_number,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.operator_name,
+        t.city_firm,
+        t.original_dep,
+        t.purchasing_type,
+        t.estimated_amount,
+        t.process_description
+        <if test="param.roleName != null and param.roleName !='大区观察员'">
+            ,op1.operation_name,op1.by_operation_people_id
+        </if>
+        FROM
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                t_oa_purchase_special t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{param.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_purchase_special t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                t.id =#{param.id}
+            </if>
+            <if test="param.documentNumber != null and param.documentNumber != '' ">
+                and t.document_number like "%" #{param.documentNumber} "%"
+            </if>
+            <if test="param.cityFirm != null and param.cityFirm != '' ">
+                and t.city_firm like "%" #{param.cityFirm} "%"
+            </if>
+            <if test="param.originalDep != null and param.originalDep != '' ">
+                and t.original_dep like "%" #{param.originalDep} "%"
+            </if>
+            <if test="param.purchasingType != null and param.purchasingType != '' ">
+                and t.purchasing_type like "%" #{param.purchasingType} "%"
+            </if>
+            <if test="param.alertNode != null and param.alertNode != '' ">
+                and t.alert_node=#{param.alertNode}
+            </if>
+            <if test="param.applyDate != null and param.applyDate != ''">
+                and t.apply_date LIKE concat('%',#{param.applyDate},'%')
+            </if>
+            <if test="param.statisticsCityName != null and param.statisticsCityName != ''">
+                and t.statistics_city_name =#{param.statisticsCityName}
+            </if>
+            <if test="param.startTime != null and param.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.endTime != null and param.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.approvalStatus != null and param.approvalStatus != ''">
+                and t.approval_status = #{param.approvalStatus}
+            </if>
+        </trim>
+        order by update_time desc
+    </select>
+
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.crc.business.oa.model.vo.request.PurchaseSpecialParam">
+        select count(*) total,
+        count(case when has_read = 'beread' then 1 end) beread,
+        count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
+        count(case when monitor_status = 'warning' then 1 end) warning,
+        count(case when monitor_status = 'normal' then 1 end) normal
+        from (
+        SELECT
+        t.id,
+        t.document_number,
+        t.operator_name,
+        t.city_firm,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.original_dep,
+        t.purchasing_type
+        FROM
+        <choose>
+            <when test="roleName != null and roleName =='大区观察员'">
+                t_oa_purchase_special t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_purchase_special t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        ) oa
+        <trim prefix="where" prefixOverrides="and">
+            <if test="id != null and id != '' ">
+                oa.id =#{id}
+            </if>
+            <if test="documentNumber != null and documentNumber != '' ">
+                and oa.document_number LIKE concat('%',#{documentNumber},'%')
+            </if>
+            <if test="cityFirm != null and cityFirm != '' ">
+                and oa.city_firm LIKE concat('%',#{cityFirm},'%')
+            </if>
+            <if test="originalDep != null and originalDep != '' ">
+                and oa.original_dep LIKE concat('%',#{originalDep},'%')
+            </if>
+            <if test="purchasingType != null and purchasingType != '' ">
+                and oa.purchasing_type LIKE concat('%',#{purchasingType},'%')
+            </if>
+            <if test="alertNode != null and alertNode != '' ">
+                and oa.alert_node=#{alertNode}
+            </if>
+        </trim>
+    </select>
+
+    <select id="statisticReport" resultType="com.crc.business.oa.model.vo.result.PurchaseSpecialStatisticsVo">
+        SELECT a.statistics_city_name                           cityName,
+                count(*)      AS yearTotal
+        FROM t_oa_purchase_special a
+        where statistics_city_name is not null
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>GROUP BY a.statistics_city_name
+
+    </select>
+
+    <select id="statisticDayReport" resultType="com.crc.business.oa.model.vo.result.PurchaseSpecialStatisticsVo">
+        SELECT a.statistics_city_name                           cityName,
+        SUM((TO_DAYS(a.apply_date) = TO_DAYS(NOW()))) AS todayTotal
+        FROM t_oa_purchase_special a
+        where statistics_city_name is not null
+        GROUP BY a.statistics_city_name
+    </select>
+</mapper>

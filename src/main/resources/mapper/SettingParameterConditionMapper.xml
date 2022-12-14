@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.independent.dao.SettingParameterConditionDao">
+    <resultMap id="resultData" type="com.crc.business.independent.model.vo.result.SettingParamConditionVo">
+        <result column="type" property="type"></result>
+        <result column="is_information" property="isInformation"></result>
+        <result column="information" property="information"></result>
+        <result column="before_field" property="beforeField"></result>
+        <result column="before_field_operation" property="beforeFieldOperation"></result>
+        <result column="before_field_value" property="beforeFieldValue"></result>
+        <result column="is_information_deter" property="isInformationDeter"></result>
+        <result column="information_deter" property="informationDeter"></result>
+        <result column="determination_Field" property="determinationField"></result>
+        <result column="determination_field_operation" property="determinationFieldOperation"></result>
+        <result column="determination_field_value" property="determinationFieldValue"></result>
+        <result column="union_operation" property="unionOperation"></result>
+    </resultMap>
+
+    <select id="findByParamId" resultMap="resultData">
+        SELECT
+        sp.type,
+        spc.is_information,
+        spc.information,
+        spc.before_field,
+        spc.before_field_operation,
+        spc.before_field_value,
+        spc.is_information_deter,
+        spc.information_deter,
+        spc.determination_Field,
+        spc.determination_field_operation,
+        spc.determination_field_value,
+        spc.union_operation
+        FROM
+        t_dictionaries_detailed d
+        INNER  JOIN t_setting_parameter sp on d.id=sp.dictionary_id
+       	INNER JOIN t_setting_parameter_condition spc ON spc.param_id = sp.uid
+        where d.type_code =#{typeCode}
+    </select>
+</mapper>

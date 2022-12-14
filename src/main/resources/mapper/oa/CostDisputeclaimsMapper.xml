@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.oa.dao.CostDisputeclaimsDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.vo.result.CostDisputeClaimsVO" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="documentNumber" column="document_number"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="cityFirm" column="city_firm"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="contractTitle" column="contract_title"/>
+        <result property="contractStyle" column="contract_style"/>
+        <result property="contractPricingMethod" column="contract_pricing_method"/>
+        <result property="forCompany" column="for_company"/>
+        <result property="contractType" column="contract_type"/>
+        <result property="costType" column="cost_type"/>
+        <result property="supplier" column="supplier"/>
+        <result property="contractAmount" column="contract_amount"/>
+        <result property="partyAAmount" column="party_a_amount"/>
+        <result property="partyBAmount" column="party_b_amount"/>
+        <result property="bothAgreedAmount" column="both_agreed_amount"/>
+        <result property="disputeDescription" column="dispute_description"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="hasRead" column="has_read"/>
+        <result property="monitorStatus" column="monitor_status"/>
+        <result property="alertNode" column="alert_node"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="mixedField" column="mixed_field"/>
+        <result property="operationName" column="operation_name"/>
+        <result property="byOperationPeopleId" column="by_operation_people_id"/>
+    </resultMap>
+
+    <select id="list" resultMap="result">
+        SELECT t.uid,
+        t.id,
+        t.document_number,
+        t.apply_date,
+        t.city_firm,
+        t.operator_name,
+        t.contract_title,
+        t.contract_style,
+        t.contract_pricing_method,
+        t.for_company,
+        t.contract_type,
+        t.cost_type,
+        t.supplier,
+        t.contract_amount,
+        t.party_a_amount,
+        t.party_b_amount,
+        t.both_agreed_amount,
+        t.dispute_description,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.supplier,
+        t.alert_node,
+        t.other
+        <if test="param.roleName != null and param.roleName !='大区观察员'">
+            ,op1.operation_name,op1.by_operation_people_id
+        </if>
+        FROM
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                t_oa_cost_disputeclaims t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{param.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_cost_disputeclaims t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                t.id =#{param.id}
+            </if>
+            <if test="param.documentNumber != null and param.documentNumber != ''">
+                and t.document_number LIKE concat('%',#{param.documentNumber},'%')
+            </if>
+            <if test="param.cityFirm != null and param.cityFirm != ''">
+                and t.city_firm LIKE concat('%',#{param.cityFirm},'%')
+            </if>
+            <if test="param.applyDate != null and param.applyDate != ''">
+                and t.apply_date LIKE concat('%',#{param.applyDate},'%')
+            </if>
+            <if test="param.operatorName != null and param.operatorName != ''">
+                and t.operator_name LIKE concat('%',#{param.operatorName},'%')
+            </if>
+            <if test="param.supplier != null and param.supplier != ''">
+                and t.supplier LIKE concat('%',#{param.supplier},'%')
+            </if>
+            <if test="param.alertNode != null and param.alertNode != ''">
+                and t.alert_node =#{param.alertNode}
+            </if>
+            <if test="param.statisticsCityName != null and param.statisticsCityName != '' ">
+                and statistics_city_name LIKE concat('%',#{param.statisticsCityName},'%')
+            </if>
+            <if test="param.hasRead != null and param.hasRead != ''">
+                and t.has_read =#{param.hasRead}
+            </if>
+            <if test="param.monitorStatus != null and param.monitorStatus != ''">
+                and t.monitor_status =#{param.monitorStatus}
+            </if>
+            <if test="param.startTime != null and param.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.endTime != null and param.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.approvalStatus != null and param.approvalStatus != ''">
+                and t.approval_status = #{param.approvalStatus}
+            </if>
+        </trim>
+        order by t.update_time desc
+    </select>
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+        SELECT count(*) total,
+        count(case when has_read = 'beread' then 1 end) beread,
+        count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
+        count(case when monitor_status = 'warning' then 1 end) warning,
+        count(case when monitor_status = 'normal' then 1 end) normal
+        FROM (
+        SELECT
+        t.id,
+        t.document_number,
+        t.apply_date,
+        t.city_firm,
+        t.operator_name,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node
+        FROM
+        <choose>
+            <when test="countParam.roleName != null and countParam.roleName =='大区观察员'">
+                t_oa_cost_disputeclaims t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{countParam.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_cost_disputeclaims t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        ) oa
+        <trim prefix="where" prefixOverrides="and">
+            <if test="countParam.id != null and countParam.id != '' ">
+                oa.id =#{countParam.id}
+            </if>
+            <if test="countParam.documentNumber != null and countParam.documentNumber != ''">
+                and oa.document_number LIKE concat('%',#{countParam.documentNumber},'%')
+            </if>
+            <if test="countParam.cityFirm != null and countParam.cityFirm != ''">
+                and oa.city_firm LIKE concat('%',#{countParam.cityFirm},'%')
+            </if>
+            <if test="countParam.applyDate != null and countParam.applyDate != ''">
+                and oa.apply_date LIKE concat('%',#{countParam.applyDate},'%')
+            </if>
+            <if test="countParam.operatorName != null and countParam.operatorName != ''">
+                and oa.operator_name LIKE concat('%',#{countParam.operatorName},'%')
+            </if>
+        </trim>
+    </select>
+
+    <select id="statistics" resultType="com.crc.business.oa.model.vo.result.CostStatisticsVo">
+        select statistics_city_name, SUM(both_agreed_amount) bothAgreedAmount
+        from t_oa_cost_disputeclaims
+        where statistics_city_name is not null
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        GROUP BY statistics_city_name
+    </select>
+</mapper>

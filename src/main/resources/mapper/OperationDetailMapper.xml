@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.independent.dao.OperationDetailDao">
+
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.independent.model.entity.OperationDetail" id="result">
+        <result property="id" column="id"/>
+        <result property="supervisionId" column="supervision_id"/>
+        <result property="operationName" column="operation_name"/>
+        <result property="operationPeopleId" column="operation_people_id"/>
+        <result property="operationPeople" column="operation_people"/>
+        <result property="byOperationPeopleId" column="by_operation_people_id"/>
+        <result property="byOperationPeople" column="by_operation_people"/>
+        <result property="operationTime" column="operation_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="authority" parameterType="String"
+            resultType="com.crc.business.independent.model.entity.OperationDetail">
+        select *
+        from t_operation_detail
+        where
+        supervision_id = #{supervisionId}
+        <if test="(roleName != null and roleName !='大区观察员') and roleNameDepartment !='部门负责人'">
+            and (operation_people_id = #{operationPeopleId}
+            and operation_name = "feedback" or operation_name =
+            'finish')
+        </if>
+    </select>
+
+    <select id="findOperationTime" resultType="String">
+        select operation_name
+        from t_operation_detail
+        where supervision_id = #{supervisionId}
+          and operation_time > #{operationTime}
+          and operation_name = 'feedback'
+        ORDER BY id DESC LIMIT 1
+    </select>
+
+
+    <select id="timingRemind" resultMap="result">
+        select t.id, t.supervision_id, t.by_operation_people_id, t.operation_time
+        from t_operation_detail t
+                 LEFT JOIN t_my_supervision m on t.supervision_id = m.id
+        where operation_name = "transfer"
+          and operation_time >= date_sub(curdate(), interval 30 day)
+          and m.status = 'transfer'
+    </select>
+
+
+    <select id="findCompetence" resultType="com.crc.business.independent.model.entity.OperationDetail">
+        select *
+        from t_operation_detail
+        where supervision_id = #{supervisionId}
+          and operation_name = 'transfer'
+          and by_operation_people_id = #{operationPeopleId}
+          and operation_time > IFNULL
+            ((select MAX(operation_time)
+              from t_operation_detail
+              where supervision_id = #{supervisionId} and operation_name = 'feedback'),
+             STR_TO_DATE('1000-01-01 00:00:00', "%Y-%m-%d %H:%i:%s"))
+    </select>
+
+    <select id="findCompetenceNew" resultType="String">
+        <foreach collection="list" item="item" index="idx" >
+            select supervision_id from t_operation_detail
+            where
+            supervision_id=#{item} and operation_name='transfer' and by_operation_people_id=#{userId}
+            and operation_time>IFNULL((select MAX(operation_time) from t_operation_detail where supervision_id=#{item}
+            and operation_name='feedback'), 0)
+            <if test="idx != (list.size() - 1)">
+                union all
+            </if>
+        </foreach>
+    </select>
+
+</mapper>

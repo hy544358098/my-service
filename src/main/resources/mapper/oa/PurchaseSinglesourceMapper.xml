@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.oa.dao.PurchaseSinglesourceDao">
+
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.vo.result.ProjectSinglesourceVo" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="documentNumber" column="document_number"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="cityFirm" column="city_firm"/>
+        <result property="originalDep" column="original_dep"/>
+        <result property="operatorName" column="operator_name"/>
+        <result property="ownedPurchasLine" column="owned_purchas_line"/>
+        <result property="purchasingType" column="purchasing_type"/>
+        <result property="singleSourceClause" column="single_source_clause"/>
+        <result property="pricingModel" column="pricing_model"/>
+        <result property="estimatedAmount" column="estimated_amount"/>
+        <result property="procurementModel" column="procurement_model"/>
+        <result property="sysForPurchasingMethod" column="sys_for_purchasing_method"/>
+        <result property="changedPurchasingMethod" column="changed_purchasing_method"/>
+        <result property="partyA" column="party_a"/>
+        <result property="partyB" column="party_b"/>
+        <result property="contractExecutionTime" column="contract_execution_time"/>
+        <result property="processDescription" column="process_description"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="hasRead" column="has_read"/>
+        <result property="monitorStatus" column="monitor_status"/>
+        <result property="alertNode" column="alert_node"/>
+        <result property="mixedField" column="mixed_field"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="finishType" column="finish_type"/>
+    </resultMap>
+
+    <select id="list" resultMap="result">
+        SELECT t.uid,
+        t.id,
+        t.document_number,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.original_dep,
+        t.operator_name,
+        t.owned_purchas_line,
+        t.purchasing_type,
+        t.initiate_dep,
+        t.single_source_clause,
+        t.pricing_model,
+        t.estimated_amount,
+        t.procurement_model,
+        t.sys_for_purchasing_method,
+        t.changed_purchasing_method,
+        t.party_a,
+        t.party_b,
+        t.contract_execution_time,
+        t.statistics_city_name
+        <if test="param.roleName != null and param.roleName !='大区观察员'">
+            ,op1.operation_name,op1.by_operation_people_id
+        </if>
+        FROM
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                t_oa_purchase_singlesource t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{param.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_purchase_singlesource t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                t.id =#{param.id}
+            </if>
+            <if test="param.initiateDep != null and param.initiateDep != '' ">
+                and initiate_dep LIKE concat('%',#{param.initiateDep},'%')
+            </if>
+            <if test="param.ownedPurchasLine != null and param.ownedPurchasLine != '' ">
+                and owned_purchas_line LIKE concat('%',#{param.ownedPurchasLine},'%')
+            </if>
+            <if test="param.purchasingType != null and param.purchasingType != '' ">
+                and purchasing_type LIKE concat('%',#{param.purchasingType},'%')
+            </if>
+            <if test="param.procurementModel != null and param.procurementModel != '' ">
+                and procurement_model LIKE concat('%',#{param.procurementModel},'%')
+            </if>
+            <if test="param.statisticsCityName != null and param.statisticsCityName != '' ">
+                and statistics_city_name LIKE concat('%',#{param.statisticsCityName},'%')
+            </if>
+            <if test="param.partyA != null and param.partyA != '' ">
+                and party_a LIKE concat('%',#{param.partyA},'%')
+            </if>
+            <if test="param.partyB != null and param.partyB != '' ">
+                and party_b LIKE concat('%',#{param.partyB},'%')
+            </if>
+            <if test="param.applyDate != null and param.applyDate != '' ">
+                and DATE_FORMAT(apply_date,'%Y')=#{param.applyDate}
+            </if>
+            <if test="param.alertNode != null and param.alertNode != '' ">
+                and alert_node=#{param.alertNode}
+            </if>
+            <if test="param.hasRead != null and param.hasRead != ''">
+                and has_read =#{param.hasRead}
+            </if>
+            <if test="param.monitorStatus != null and param.monitorStatus != ''">
+                and monitor_status =#{param.monitorStatus}
+            </if>
+            <if test="param.startTime != null and param.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.endTime != null and param.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.approvalStatus != null and param.approvalStatus != ''">
+                and approval_status = #{param.approvalStatus}
+            </if>
+        </trim>
+        order by update_time desc
+    </select>
+
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.crc.business.oa.model.vo.request.PurchaseSinglesourceParam">
+        select count(*) total,
+        count(case when has_read='beread'then 1 end) beread,
+        count(case when monitor_status='special_attention'then 1 end) specialAttention,
+        count(case when monitor_status='warning'then 1 end) warning,
+        count(case when monitor_status='normal'then 1 end) normal
+        from(
+        SELECT
+        t.id,
+        t.document_number,
+        t.apply_date,
+        t.city_firm,
+        t.operator_name,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.original_dep,
+        t.initiate_dep,
+        t.owned_purchas_line,
+        t.purchasing_type,
+        t.procurement_model
+        FROM
+        <choose>
+            <when test="roleName != null and roleName =='大区观察员'">
+                t_oa_purchase_singlesource t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_purchase_singlesource t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        ) oa
+        <trim prefix="where" prefixOverrides="and">
+            <if test="id != null and id != '' ">
+                oa.id =#{id}
+            </if>
+            <if test="initiateDep != null and initiateDep != '' ">
+                and oa.initiate_dep LIKE concat('%',#{initiateDep},'%')
+            </if>
+            <if test="ownedPurchasLine != null and ownedPurchasLine != '' ">
+                and oa.owned_purchas_line like "%" #{ownedPurchasLine} "%"
+            </if>
+            <if test="purchasingType != null and purchasingType != '' ">
+                and oa.purchasing_type like "%" #{purchasingType} "%"
+            </if>
+            <if test="procurementModel != null and procurementModel != '' ">
+                and oa.procurement_model like "%" #{procurementModel} "%"
+            </if>
+            <if test="alertNode != null and alertNode != '' ">
+                and oa.alert_node=#{alertNode}
+            </if>
+        </trim>
+    </select>
+
+
+    <select id="statisticsYear" resultType="com.crc.business.oa.model.vo.result.PurchaseSinglesourceStatisticsVo">
+        select statistics_city_name statistics_city_name_year, estimated_amount estimated_amount_year
+        from t_oa_purchase_singlesource
+        where statistics_city_name is not null
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+    </select>
+
+    <select id="statisticsDay" resultType="com.crc.business.oa.model.vo.result.PurchaseSinglesourceStatisticsVo">
+        select statistics_city_name statistics_city_name_day, estimated_amount estimated_amount_day
+        from t_oa_purchase_singlesource
+        where TO_DAYS(apply_date) = TO_DAYS(NOW())
+          and statistics_city_name is not null
+    </select>
+</mapper>

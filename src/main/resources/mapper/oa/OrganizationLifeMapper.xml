@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.oa.dao.OrganizationLifeDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.vo.result.OrganizationLifeVo" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="associationName" column="association_name"/>
+        <result property="commonName" column="common_name"/>
+        <result property="activityType" column="activity_type"/>
+        <result property="starttime" column="startTime"/>
+        <result property="endtime" column="endTime"/>
+        <result property="content" column="content"/>
+        <result property="address" column="address"/>
+        <result property="host" column="host"/>
+        <result property="recorder" column="recorder"/>
+        <result property="shouldNumber" column="should_number"/>
+        <result property="actualNumber" column="actual_number"/>
+        <result property="topic" column="topic"/>
+        <result property="resolution" column="resolution"/>
+        <result property="classHours" column="class_hours"/>
+        <result property="type" column="type"/>
+        <result property="creator" column="creator"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="hasRead" column="has_read"/>
+        <result property="monitorStatus" column="monitor_status"/>
+        <result property="alertNode" column="alert_node"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="finishType" column="finish_type"/>
+    </resultMap>
+
+
+    <select id="list" resultMap="result">
+        select * from (
+        <choose>
+            <when test="param.roleName != null and param.roleName !='大区观察员'">
+                SELECT
+                t.id,
+                t.uid,
+                t.document_number,
+                t.approval_status,
+                t.has_read,
+                t.monitor_status,
+                t.alert_node,
+                t.association_name,
+                t.activity_type,
+                t.start_time,
+                t.end_time,
+                t.creator,
+                t.common_name,
+                t.topic,
+                t.class_hours,
+                t.address,
+                t.update_time,
+                t.is_party_group,
+                t.party_group,
+                op1.operation_name,
+                t.type
+                FROM
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{param.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_organization_life t on op.uid=t.uid
+                UNION
+            </when>
+        </choose>
+        SELECT
+        s.id,
+        s.uid,
+        s.document_number,
+        s.approval_status,
+        s.has_read,
+        s.monitor_status,
+        s.alert_node,
+        s.association_name,
+        s.activity_type,
+        s.start_time,
+        s.end_time,
+        s.creator,
+        s.common_name,
+        s.topic,
+        s.class_hours,
+        s.address,
+        s.update_time,
+        s.is_party_group,
+        s.party_group,
+        s.resolution operation_name,
+        s.type
+        FROM
+        t_oa_organization_life s
+        <choose>
+            <when test="param.roleName != null and param.roleName !='大区观察员'">
+                WHERE
+                s.creator = #{param.ldapId}
+            </when>
+        </choose>
+        )x
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                x.id =#{param.id}
+            </if>
+            <if test="param.associationName != null and param.associationName != ''">
+                and x.association_name =#{param.associationName}
+            </if>
+            <if test="param.commonName != null and param.commonName != ''">
+                and x.common_name LIKE concat('%',#{param.commonName},'%')
+            </if>
+            <if test="param.activityType != null and param.activityType != ''">
+                and x.activity_type =#{param.activityType}
+            </if>
+            <if test="param.startTime != null and param.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(x.start_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.endTime != null and param.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(x.end_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.alertNode != null and param.alertNode != ''">
+                and x.alert_node =#{param.alertNode}
+            </if>
+            <if test="param.hasRead != null and param.hasRead != ''">
+                and x.has_read =#{param.hasRead}
+            </if>
+            <if test="param.monitorStatus != null and param.monitorStatus != ''">
+                and x.monitor_status =#{param.monitorStatus}
+            </if>
+            <if test="param.type != null and param.type != ''">
+                and x.type =#{param.type}
+            </if>
+            <if test="param.topic != null and param.topic != ''">
+                and x.topic LIKE concat('%',#{param.topic},'%')
+            </if>
+        </trim>
+        group by id
+        order by update_time desc
+    </select>
+
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.crc.business.oa.model.vo.request.OrganizationLifeParam">
+        select count(*) total,
+        count(case when has_read = 'beread' then 1 end) beread,
+        count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
+        count(case when monitor_status = 'warning' then 1 end) warning,
+        count(case when monitor_status = 'normal' then 1 end) normal
+        from (
+        select * from (
+        <choose>
+            <when test="roleName != null and roleName !='大区观察员'">
+                SELECT
+                t.id,
+                t.uid,
+                t.approval_status,
+                t.has_read,
+                t.monitor_status,
+                t.alert_node,
+                t.association_name,
+                t.activity_type,
+                t.start_time,
+                t.end_time,
+                t.creator,
+                t.common_name,
+                t.topic,
+                t.class_hours,
+                t.address,
+                op1.operation_name,
+                t.type
+                FROM
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_organization_life t on op.uid=t.uid
+                UNION
+            </when>
+        </choose>
+        SELECT
+        s.id,
+        s.uid,
+        s.approval_status,
+        s.has_read,
+        s.monitor_status,
+        s.alert_node,
+        s.association_name,
+        s.activity_type,
+        s.start_time,
+        s.end_time,
+        s.creator,
+        s.common_name,
+        s.topic,
+        s.class_hours,
+        s.address,
+        s.resolution operation_name,
+        s.type
+        FROM
+        t_oa_organization_life s
+        <choose>
+            <when test="roleName != null and roleName !='大区观察员'">
+                WHERE
+                s.creator = #{ldapId}
+            </when>
+        </choose>
+        ) oa
+        <trim prefix="where" prefixOverrides="and">
+            <if test="id != null and id != '' ">
+                id =#{id}
+            </if>
+            <if test="associationName != null and associationName != ''">
+                and association_name =#{associationName}
+            </if>
+            <if test="commonName != null and commonName != ''">
+                and common_name LIKE concat('%',#{commonName},'%')
+            </if>
+            <if test="activityType != null and activityType != ''">
+                and activity_type =#{activityType}
+            </if>
+            <if test="startTime != null and startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(start_time, '%Y-%m-%d') >= DATE_FORMAT(#{startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="endTime != null and endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(end_time, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="type != null and type != ''">
+                and type =#{type}
+            </if>
+            <if test="topic != null and topic != ''">
+                and topic LIKE concat('%',#{topic},'%')
+            </if>
+            <if test="alertNode != null and alertNode != ''">
+                and alert_node =#{alertNode}
+            </if>
+        </trim>
+        ) su
+    </select>
+
+    <select id="statistics" resultType="com.crc.business.oa.model.vo.result.LifeStatisticsVo">
+        select
+            (select type_code from t_dictionaries_detailed where classification_id=12 and classification_code='party_member_number' and classification_name='党员数') martyMemberTotal,
+            (select COUNT(*) from t_dictionaries_detailed where classification_id=11 and type_name like '%党委%')partyCommittee,
+        (select COUNT(*) from t_dictionaries_detailed where classification_id=11 and type_name like '%党总支%')partyTotalBranch,
+        (select COUNT(*) from t_dictionaries_detailed where classification_id=11 and type_name like '%党支部%')partyBranch,
+        (select COUNT(*) from t_oa_organization_life where type in(1,2,3,4,6) or (type = 5 and is_party_group=1)
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        )organizationalLifeTotal,
+        (select COUNT(*) from t_oa_organization_life where type =1
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        )themeParty,
+        (select COUNT(*) from t_oa_organization_life where type =2
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        )organizationalLife,
+        (select COUNT(*) from t_oa_organization_life where type =3
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        )branchPartyMember,
+        (select COUNT(*) from t_oa_organization_life where type =4
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        )branchCommittee,
+        (select COUNT(*) from t_oa_organization_life where type =5 and is_party_group=1
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        )partyGroup,
+        (select COUNT(*) from t_oa_organization_life where type =6
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(create_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        )partyClass
+    </select>
+</mapper>

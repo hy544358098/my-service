@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.oa.dao.OaOperateDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.entity.OaOperateEntity" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="operationName" column="operation_name"/>
+        <result property="operationPeopleId" column="operation_people_id"/>
+        <result property="operationPeople" column="operation_people"/>
+        <result property="byOperationPeopleId" column="by_operation_people_id"/>
+        <result property="byOperationPeople" column="by_operation_people"/>
+        <result property="operationTime" column="operation_time"/>
+        <result property="remark" column="remark"/>
+        <result property="processType" column="process_type"/>
+    </resultMap>
+    
+    <select id="timingRemind" resultMap="result">
+        select id,uid,by_operation_people_id,operation_time,process_type
+        from t_oa_operation
+        where operation_name="transfer" and process_type IS NOT NULL and operation_time>=date_sub(curdate(),interval 30 day)
+    </select>
+
+
+    <select id="findOperationTime" resultType="String">
+        select operation_name from t_oa_operation
+        where uid =#{uid} and operation_time>#{operationTime} and operation_name='feedback' ORDER BY id DESC LIMIT 1
+    </select>
+
+
+    <select id="findStatus" parameterType="String" resultType="String">
+        select alert_node from ${tableName} where uid=#{uid}
+    </select>
+
+    <select id="findCompetence" resultType="com.crc.business.oa.model.entity.OaOperateEntity" >
+        select * from t_oa_operation
+        where uid=#{supervisionId} and operation_name='transfer' and by_operation_people_id=#{operationPeopleId}
+          and operation_time>IFNULL
+            ((select MAX(operation_time) from t_oa_operation where uid=#{supervisionId} and operation_name='feedback'),STR_TO_DATE('1000-01-01 00:00:00',"%Y-%m-%d %H:%i:%s"))
+    </select>
+
+    <select id="findCompetenceNew" resultType="String" >
+        <foreach collection="list" item="item" index="idx" >
+            select uid from t_oa_operation
+            where
+            uid=#{item} and operation_name='transfer' and by_operation_people_id=#{userId}
+            and operation_time>IFNULL((select MAX(operation_time) from t_oa_operation where uid=#{item} and operation_name='feedback'), 0)
+            <if test="idx != (list.size() - 1)">
+                union all
+            </if>
+        </foreach>
+    </select>
+
+</mapper>

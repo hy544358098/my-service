@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.oa.dao.MarketingApplyDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.vo.result.MarketingApplyVo" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="title" column="title"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="department" column="department"/>
+        <result property="applicant" column="applicant"/>
+        <result property="projectName" column="project_name"/>
+        <result property="belongingOrg" column="belonging_org"/>
+        <result property="budgetFocalPoint" column="budget_focal_point"/>
+        <result property="budgetExecutionType" column="budget_execution_type"/>
+        <result property="budgetMonth" column="budget_month"/>
+        <result property="budgetTotal" column="budget_total"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="hasRead" column="has_read"/>
+        <result property="monitorStatus" column="monitor_status"/>
+        <result property="alertNode" column="alert_node"/>
+        <result property="mixedField" column="mixed_field"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="finishType" column="finish_type"/>
+    </resultMap>
+
+
+    <select id="list" resultMap="result">
+        SELECT t.uid,
+        t.id,
+        t.document_number,
+        t.title,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.department,
+        t.applicant,
+        t.project_name,
+        t.belonging_org,
+        t.budget_focal_point,
+        t.budget_execution_type,
+        t.budget_month,
+        t.budget_total
+        <if test="param.roleName != null and param.roleName !='大区观察员'">
+            ,op1.operation_name,op1.by_operation_people_id
+        </if>
+        FROM
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                t_oa_marketing_apply t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{param.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_marketing_apply t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                t.id =#{param.id}
+            </if>
+            <if test="param.documentNumber != null and param.documentNumber != ''">
+                and t.document_number LIKE concat('%',#{param.documentNumber},'%')
+            </if>
+            <if test="param.projectName != null and param.projectName != ''">
+                and t.project_name LIKE concat('%',#{param.projectName},'%')
+            </if>
+            <if test="param.belongingOrg != null and param.belongingOrg != ''">
+                and t.belonging_org LIKE concat('%',#{param.belongingOrg},'%')
+            </if>
+            <if test="param.budgetExecutionType != null and param.budgetExecutionType != ''">
+                and t.budget_execution_type LIKE concat('%',#{param.budgetExecutionType},'%')
+            </if>
+            <if test="param.alertNode != null and param.alertNode != ''">
+                and t.alert_node =#{param.alertNode}
+            </if>
+            <if test="param.hasRead != null and param.hasRead != ''">
+                and t.has_read =#{param.hasRead}
+            </if>
+            <if test="param.monitorStatus != null and param.monitorStatus != ''">
+                and t.monitor_status =#{param.monitorStatus}
+            </if>
+            <if test="param.applyDate != null and param.applyDate != ''">
+                and t.apply_date LIKE concat('%',#{param.applyDate},'%')
+            </if>
+            <if test="param.statisticsCityName != null and param.statisticsCityName != ''">
+                and t.statistics_city_name =#{param.statisticsCityName}
+            </if>
+        </trim>
+        order by update_time desc
+    </select>
+
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.crc.business.oa.model.vo.request.MarketingApplyParam">
+        select count(*) total,
+        count(case when has_read = 'beread' then 1 end) beread,
+        count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
+        count(case when monitor_status = 'warning' then 1 end) warning,
+        count(case when monitor_status = 'normal' then 1 end) normal
+        from (
+        SELECT
+        t.id,
+        t.document_number,
+        t.project_name,
+        t.belonging_org,
+        t.budget_execution_type,
+        t.apply_date,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node
+        FROM
+        <choose>
+            <when test="roleName != null and roleName =='大区观察员'">
+                t_oa_marketing_apply t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_marketing_apply t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        ) oa
+        <trim prefix="where" prefixOverrides="and">
+            <if test="id != null and id != '' ">
+                oa.id =#{id}
+            </if>
+            <if test="documentNumber != null and documentNumber != ''">
+                and oa.document_number LIKE concat('%',#{documentNumber},'%')
+            </if>
+            <if test="projectName != null and projectName != ''">
+                and oa.project_name LIKE concat('%',#{projectName},'%')
+            </if>
+            <if test="belongingOrg != null and belongingOrg != ''">
+                and oa.belonging_org LIKE concat('%',#{belongingOrg},'%')
+            </if>
+            <if test="budgetExecutionType != null and budgetExecutionType != ''">
+                and oa.budget_execution_type LIKE concat('%',#{budgetExecutionType},'%')
+            </if>
+            <if test="alertNode != null and alertNode != '' ">
+                and oa.alert_node=#{alertNode}
+            </if>
+        </trim>
+    </select>
+
+    <select id="statisticReport" resultType="com.crc.business.oa.model.vo.result.StatisticCommonVo">
+        SELECT a.statistics_city_name                                   cityName,
+               SUM(CONVERT(IFNULL(a.budget_total, 0), DECIMAL (10, 2))) total
+        FROM t_oa_marketing_apply a
+        WHERE a.statistics_city_name is not null
+          AND a.statistics_city_name != ''
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        GROUP BY a.statistics_city_name
+    </select>
+
+    <select id="statisticList" resultType="com.crc.business.oa.model.vo.result.MarketingApplySubFormVo">
+        SELECT a.uid,
+        a.project_name projectName,
+        a.budget_month budgetMonth,
+        b.table_info tableInfo,
+        a.approval_status
+        FROM t_oa_marketing_apply a
+        LEFT JOIN t_oa_active_form b ON a.uid = b.uid
+        <trim prefix="where" prefixOverrides="and">
+            b.table_name = '预算执行明细'
+            <if test="subParam.projectName != null and subParam.projectName != ''">
+                and a.project_name LIKE concat('%',#{subParam.projectName},'%')
+            </if>
+            <if test="subParam.budgetMonth != null and subParam.budgetMonth != ''">
+                and a.budget_month LIKE concat('%',#{subParam.budgetMonth},'%')
+            </if>
+            <if test="subParam.km1 != null and subParam.km1 != ''">
+                and b.table_info LIKE concat('%',#{subParam.km1},'%')
+            </if>
+            <if test="subParam.statisticsCityName != null and subParam.statisticsCityName != ''">
+                and a.statistics_city_name =#{subParam.statisticsCityName}
+            </if>
+            <if test="subParam.startTime != null and subParam.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{subParam.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="subParam.endTime != null and subParam.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{subParam.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="subParam.approvalStatus != null and subParam.approvalStatus != ''">
+                and a.approval_status = #{subParam.approvalStatus}
+            </if>
+        </trim>
+        order by update_time desc
+    </select>
+</mapper>

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.oa.dao.PurchaseShortlistedDao">
+    <resultMap id="result" type="com.crc.business.oa.model.vo.result.PurchaseShortListedVO">
+        <result column="uid" property="uid"></result>
+        <result column="document_number" property="documentNumber"></result>
+        <result column="apply_date" property="applyDate"></result>
+        <result column="city_firm" property="cityFirm"></result>
+        <result column="apply_name" property="applyName"></result>
+        <result column="level" property="level"></result>
+        <result column="bidding_name" property="biddingName"></result>
+        <result column="company_name" property="companyName"></result>
+        <result column="budget_amount" property="budgetAmount"></result>
+        <result column="remark" property="remark"></result>
+        <result column="approval_status" property="approvalStatus"></result>
+        <result column="has_read" property="hasRead"></result>
+        <result column="monitor_status" property="monitorStatus"></result>
+        <result column="alert_node" property="alertNode"></result>
+        <result column="mixed_field" property="mixedField"></result>
+        <result column="operation_node_name" property="operationNodeName"></result>
+        <result column="table_info" property="tableInfo"></result>
+    </resultMap>
+
+    <select id="list" resultMap="result">
+        SELECT
+        t.uid,
+        t.id,
+        t.document_number,
+        t.title,
+        t.apply_date,
+        t.operator_name,
+        t.organization,
+        t.apply_dept,
+        t.advance_number,
+        t.contract_sort,
+        t.purchase_sort_name,
+        t.purchase_sort_number,
+        t.bulletin_title,
+        t.bulletin_number,
+        t.purchase_organization,
+        t.purchase_type,
+        t.sign_up_efficient_time,
+        t.remark,
+        t.pre_trial_operator_name,
+        t.supplier_head_tital,
+        t.supplier_head_apply_dept,
+        t.supplier_head_remark,
+        t.supplier_head_organization,
+        t.supplier_head_landline,
+        t.supplier_head_operator_name,
+        t.supplier_head_connect,
+        t.supplier_result_remark,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.mixed_field,
+        b.table_info
+        <if test="shortList.roleName != null and shortList.roleName !='admin'">
+            ,op1.operation_name operation_node_name
+        </if>
+        FROM
+        <choose>
+            <when test="shortList.roleName != null and shortList.roleName =='admin'">
+                t_oa_purchase_shortlisted t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{shortList.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_purchase_shortlisted t  on op.uid=t.uid
+            </otherwise>
+        </choose>
+        left join t_oa_active_form b
+        on t.uid=b.uid and b.table_name = '资格入围结果'
+        <trim prefix="where" prefixOverrides="and">
+            <if test="shortList.id != null and shortList.id != '' ">
+                t.id =#{shortList.id}
+            </if>
+            <if test="shortList.documentNumber != null and shortList.documentNumber != ''">
+                and t.document_number LIKE concat('%',#{shortList.documentNumber},'%')
+            </if>
+            <if test="shortList.organization != null and shortList.organization != ''">
+                and t.organization LIKE concat('%',#{shortList.organization},'%')
+            </if>
+            <if test="shortList.applyDate != null and shortList.applyDate != ''">
+                and t.apply_date LIKE concat('%',#{shortList.applyDate},'%')
+            </if>
+            <if test="shortList.applyName != null and shortList.applyName != ''">
+                and t.operator_name LIKE concat('%',#{shortList.applyName},'%')
+            </if>
+            <if test="shortList.alertNode != null and shortList.alertNode != ''">
+                and t.alert_node =#{shortList.alertNode}
+            </if>
+            <if test="shortList.hasRead != null and shortList.hasRead != ''">
+                and t.has_read =#{shortList.hasRead}
+            </if>
+            <if test="shortList.monitorStatus != null and shortList.monitorStatus != ''">
+                and t.monitor_status =#{shortList.monitorStatus}
+            </if>
+            <if test="shortList.statisticsCityName != null and shortList.statisticsCityName != ''">
+                and t.statistics_city_name =#{shortList.statisticsCityName}
+            </if>
+            <if test="shortList.biddingName != null and shortList.biddingName != ''">
+                and t.bidding_name =#{shortList.biddingName}
+            </if>
+            <if test="shortList.forCompany != null and shortList.forCompany != ''">
+                and t.company_name =#{shortList.forCompany}
+            </if>
+            <if test="shortList.companyName != null and shortList.companyName != ''">
+                and b.table_info LIKE concat('%',#{shortList.companyName},'%')
+            </if>
+            <if test="shortList.purchaseSortName != null and shortList.purchaseSortName != ''">
+                and t.purchase_sort_name LIKE concat('%',#{shortList.purchaseSortName},'%')
+            </if>
+            <if test="shortList.purchaseOrganization != null and shortList.purchaseOrganization != ''">
+                and t.purchase_organization LIKE concat('%',#{shortList.purchaseOrganization},'%')
+            </if>
+            <if test="shortList.startTime != null and shortList.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{shortList.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="shortList.endTime != null and shortList.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{shortList.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="shortList.approvalStatus != null and shortList.approvalStatus != ''">
+                and t.approval_status = #{shortList.approvalStatus}
+            </if>
+        </trim>
+        order by t.update_time desc
+    </select>
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+        select count(*) total,
+        count( CASE WHEN t.has_read = 'beread' THEN 1 END ) beread,
+        count( CASE WHEN t.monitor_status = 'special_attention' THEN 1 END ) specialAttention,
+        count( CASE WHEN t.monitor_status = 'warning' THEN 1 END ) warning,
+        count( CASE WHEN t.monitor_status = 'normal' THEN 1 END ) normal
+        from
+        <choose>
+            <when test="shortList.roleName != null and shortList.roleName =='admin'">
+                t_oa_purchase_shortlisted t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{shortList.ldapId} group by uid) op
+                inner join t_oa_purchase_shortlisted t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="shortList.id != null and shortList.id != '' ">
+                t.id =#{shortList.id}
+            </if>
+            <if test="shortList.documentNumber != null and shortList.documentNumber != ''">
+                and t.document_number LIKE concat('%',#{shortList.documentNumber},'%')
+            </if>
+            <if test="shortList.organization != null and shortList.organization != ''">
+                and t.organization LIKE concat('%',#{shortList.organization},'%')
+            </if>
+            <if test="shortList.applyDate != null and shortList.applyDate != ''">
+                and t.apply_date LIKE concat('%',#{shortList.applyDate},'%')
+            </if>
+            <if test="shortList.applyName != null and shortList.applyName != ''">
+                and t.operator_name LIKE concat('%',#{shortList.applyName},'%')
+            </if>
+            <if test="shortList.alertNode != null and shortList.alertNode != ''">
+                and t.alert_node =#{shortList.alertNode}
+            </if>
+            <if test="shortList.hasRead != null and shortList.hasRead != ''">
+                and t.has_read =#{shortList.hasRead}
+            </if>
+            <if test="shortList.monitorStatus != null and shortList.monitorStatus != ''">
+                and t.monitor_status =#{shortList.monitorStatus}
+            </if>
+        </trim>
+    </select>
+
+    <select id="statisticReport" resultType="com.crc.business.oa.model.vo.result.PurchaseShortListedStatisticsVo">
+        SELECT a.uid uid,
+        a.statistics_city_name cityName,
+        b.table_info           tableInfo,
+        apply_date
+        FROM t_oa_purchase_shortlisted a
+        LEFT JOIN t_oa_active_form b
+        ON a.uid = b.uid
+        WHERE b.table_name = '资格入围结果'
+        and a.statistics_city_name is not null and a.statistics_city_name != '' and a.statistics_city_name !=
+        '西安体育会展平台公司' and a.statistics_city_name != '东安湖体育公园项目公司'
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        ORDER BY a.statistics_city_name
+    </select>
+</mapper>

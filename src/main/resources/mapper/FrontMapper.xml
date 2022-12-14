@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.independent.dao.FrontDao">
+    <select id="ownerDataCount" resultType="com.crc.business.independent.model.vo.result.OwnerDataCount">
+        SELECT all_supervision        allSupervision,
+               day_supervision       daySupervision,
+               sampling_supervision  samplingSupervision,
+               all_my_supervision allMySupervision
+        FROM v_owner_data_count
+    </select>
+
+    <select id="cityDataCount" resultType="com.crc.business.independent.model.vo.result.CityDateCount">
+        SELECT xa_count   xaCount,
+               cq_count   cqCount,
+               km_count   kmCount,
+               cd_count   cdCount,
+               gy_count   gyCount,
+               lz_count   lzCount,
+               zb_count   zbCount,
+               tyhz_count tyhzCount,
+               tygy_count tygyCount
+        FROM v_oa_city_count
+    </select>
+
+    <select id="businessDataCount" resultType="com.crc.business.independent.model.vo.result.BusinessDataCount">
+        SELECT project_change_count         projectChangeCount,
+               designl_change_count         designChangeCount,
+               annual_budget_count          annualBudgetCount,
+               marketing_apply_count        marketingApplyCount,
+               law_casefilingapproval_count casefilingapprovalCount,
+               cloud_supplier_count         cloudSupplierCount,
+               purchase_shortlisted_count   shareListedCount,
+               purchase_singlesource_count  singlesourceCount,
+               purchase_specia_count        specialsourcedCount,
+               cost_disputeclaims_count     disputeclaimsCount,
+               marketing_fuse_count         marketingFuseCount,
+               organization_life_count      organizationLifeCount
+        FROM v_oa_data_count
+    </select>
+
+    <select id="statusCount" resultType="com.crc.business.independent.model.vo.result.StatusCount">
+        select
+            (select count(*) from (
+                select *  from v_pending_supervisor where (
+                ((monitor_status='special_attention' or monitor_status='warning') and alert_node='untreated') or
+                (table_name='personal' and alert_node='untreated')) GROUP BY uid)a
+            )untreated,
+            (select count(*) transfer from v_pending_supervisor where alert_node='transfer')transfer,
+            (select count(*) feedback from v_pending_supervisor where alert_node='feedback')feedback,
+            (select count(*) finish from v_pending_supervisor where alert_node='finish')finish
+    </select>
+
+</mapper>

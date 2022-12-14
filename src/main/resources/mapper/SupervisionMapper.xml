@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.independent.dao.SupervisionDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.independent.model.entity.Supervision" id="result">
+        <result property="id" column="id"/>
+        <result property="documentsNumber" column="documents_number"/>
+        <result property="status" column="status"/>
+        <result property="submitPeopleId" column="submit_people_id"/>
+        <result property="submitPeople" column="submit_people"/>
+        <result property="submitDepartmentId" column="submit_department_id"/>
+        <result property="submitDepartment" column="submit_department"/>
+        <result property="submitTime" column="submit_time"/>
+        <result property="contactedPeopleId" column="contacted_people_id"/>
+        <result property="contactedPeople" column="contacted_people"/>
+        <result property="contactedDepartmentId" column="contacted_department_id"/>
+        <result property="contactedDepartment" column="contacted_department"/>
+        <result property="content" column="content"/>
+        <result property="advice" column="advice"/>
+        <result property="problemType" column="problem_type"/>
+        <result property="riskLever" column="risk_lever"/>
+        <result property="problemClueField" column="problem_clue_field"/>
+        <result property="anonymousType" column="anonymous_type"/>
+        <result property="replyType" column="reply_type"/>
+        <result property="replyTime" column="reply_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="supervisionType" column="supervision_type"/>
+        <result property="finishType" column="finish_type"/>
+        <result property="isDeptFillIn" column="is_dept_fill_in"/>
+    </resultMap>
+
+
+    <select id="list" resultType="com.crc.business.independent.model.vo.result.SupervisionVo"
+            parameterType="com.crc.business.independent.model.vo.request.SupervisionParam">
+        select * from (
+        <choose>
+            <when test="param.roleName != null and param.roleName !='大区观察员'">
+                SELECT
+                t.id,
+                t.documents_number,
+                t.status,
+                t.submit_people,
+                t.submit_people_id,
+                t.submit_department,
+                t.submit_time,
+                t.contacted_people,
+                t.contacted_department,
+                t.advice,
+                t.problem_clue_field,
+                t.risk_lever,
+                t.anonymous_type,
+                t.reply_type,
+                t.reply_time,
+                t.supervision_type,
+                t.submit_department_id,
+                t.problem_type,
+                t.del_type,
+                t.clean_content,
+                t.work_content,
+                t.risk_content,
+                t.is_dept_fill_in,
+                t.update_time,
+                t.top_type,
+                op1.operation_name
+                FROM
+                (select Max(id) id,supervision_id from t_operation_detail
+                where by_operation_people_id =#{param.ldapId} group by supervision_id) op
+                inner join t_operation_detail op1 on op.id=op1.id
+                inner join t_my_supervision t on op.supervision_id=t.id
+                UNION
+            </when>
+        </choose>
+        SELECT
+        s.id,
+        s.documents_number,
+        s.status,
+        s.submit_people,
+        s.submit_people_id,
+        s.submit_department,
+        s.submit_time,
+        s.contacted_people,
+        s.contacted_department,
+        s.advice,
+        s.problem_clue_field,
+        s.risk_lever,
+        s.anonymous_type,
+        s.reply_type,
+        s.reply_time,
+        s.supervision_type,
+        s.submit_department_id,
+        s.problem_type,
+        s.del_type,
+        s.clean_content,
+        s.work_content,
+        s.risk_content,
+        s.is_dept_fill_in,
+        s.update_time,
+        s.top_type,
+        s.spare
+        FROM
+        t_my_supervision s
+        <choose>
+            <when test="param.roleName != null and param.roleName !='大区观察员'">
+                WHERE
+                s.submit_people_id = #{param.ldapId}
+                <if test="param.roleNameDepartment == '部门负责人'">
+                    or s.submit_department_id=#{param.submitDepartmentId}
+                </if>
+            </when>
+        </choose>
+        ) x
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                x.id =#{param.id}
+            </if>
+            <if test="param.supervisionType != null and param.supervisionType != '' ">
+                and x.supervision_type=#{param.supervisionType}
+            </if>
+            <if test="param.documentsNumber != null and param.documentsNumber != '' ">
+                and x.documents_number like "%"#{param.documentsNumber}"%"
+            </if>
+            <if test="param.problemClueField != null and param.problemClueField != '' ">
+                and x.problem_clue_field=#{param.problemClueField}
+            </if>
+            <if test="param.problemType != null and param.problemType != '' ">
+                and x.problem_type=#{param.problemType}
+            </if>
+            <if test="param.riskLever != null and param.riskLever != '' ">
+                and x.risk_lever=#{param.riskLever}
+            </if>
+            <if test="param.startTime != null and param.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(x.submit_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.endTime != null and param.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(x.submit_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.status != null and param.status != '' ">
+                and x.status=#{param.status}
+            </if>
+            <if test="param.delType != null and param.delType != '' ">
+                and x.del_type=#{param.delType}
+            </if>
+            <if test="param.roleNameDepartment == '部门负责人' and param.roleName !='大区观察员'">
+                and x.submit_department_id=#{param.submitDepartmentId}
+            </if>
+        </trim>
+        group by id
+        order by top_type desc, update_time desc
+    </select>
+
+
+    <select id="excelList" resultType="com.crc.business.independent.model.vo.result.SupervisionVo"
+            parameterType="com.crc.business.independent.model.vo.request.SupervisionParam">
+        select * from (
+        <choose>
+            <when test="roleName != null and roleName !='大区观察员'">
+                SELECT
+                t.id,
+                t.documents_number,
+                t.status,
+                t.submit_people,
+                t.submit_people_id,
+                t.submit_department,
+                t.submit_time,
+                t.contacted_people,
+                t.contacted_department,
+                t.advice,
+                t.problem_clue_field,
+                t.risk_lever,
+                t.anonymous_type,
+                t.reply_type,
+                t.reply_time,
+                t.supervision_type,
+                t.submit_department_id,
+                t.problem_type,
+                t.del_type,
+                t.clean_content,
+                t.work_content,
+                t.risk_content,
+                t.is_dept_fill_in,
+                t.update_time,
+                op1.operation_name
+                FROM
+                (select Max(id) id,supervision_id from t_operation_detail
+                where by_operation_people_id =#{param.ldapId} group by supervision_id) op
+                inner join t_operation_detail op1 on op.id=op1.id
+                inner join t_my_supervision t on op.supervision_id=t.id
+                UNION
+            </when>
+        </choose>
+        SELECT
+        s.id,
+        s.documents_number,
+        s.status,
+        s.submit_people,
+        s.submit_people_id,
+        s.submit_department,
+        s.submit_time,
+        s.contacted_people,
+        s.contacted_department,
+        s.advice,
+        s.problem_clue_field,
+        s.risk_lever,
+        s.anonymous_type,
+        s.reply_type,
+        s.reply_time,
+        s.supervision_type,
+        s.submit_department_id,
+        s.problem_type,
+        s.del_type,
+        s.clean_content,
+        s.work_content,
+        s.risk_content,
+        s.is_dept_fill_in,
+        s.update_time,
+        s.spare
+        FROM
+        t_my_supervision s
+        <choose>
+            <when test="roleName != null and roleName !='大区观察员'">
+                WHERE
+                s.submit_people_id = #{param.ldapId}
+                <if test="roleNameDepartment == '部门负责人'">
+                    or s.submit_department_id=#{param.submitDepartmentId}
+                </if>
+            </when>
+        </choose>
+        ) x
+        <trim prefix="where" prefixOverrides="and">
+            <if test="supervisionType != null and supervisionType != '' ">
+                supervision_type=#{supervisionType}
+            </if>
+            <if test="documentsNumber != null and documentsNumber != '' ">
+                and documents_number like "%"#{documentsNumber}"%"
+            </if>
+            <if test="problemClueField != null and problemClueField != '' ">
+                and problem_clue_field=#{problemClueField}
+            </if>
+            <if test="problemType != null and problemType != '' ">
+                and problem_type=#{problemType}
+            </if>
+            <if test="riskLever != null and riskLever != '' ">
+                and risk_lever=#{riskLever}
+            </if>
+            <if test="startTime != null and startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(submit_time, '%Y-%m-%d') >= DATE_FORMAT(#{startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="endTime != null and endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(submit_time, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="status != null and status != '' ">
+                and status=#{status}
+            </if>
+            <if test="delType != null and delType != '' ">
+                and del_type=#{delType}
+            </if>
+            <if test="roleNameDepartment == '部门负责人' and roleName !='大区观察员'">
+                and submit_department_id=#{submitDepartmentId}
+            </if>
+        </trim>
+        group by id
+        order by update_time desc
+    </select>
+
+
+    <select id="statisticalData" resultType="com.crc.business.independent.model.vo.result.MySupervisionCountVo"
+            parameterType="com.crc.business.independent.model.vo.request.SupervisionParam">
+        select count(*) total,
+        count(case when status = 'reject' then 1 end) reject,
+        count(case when status = 'approval' then 1 end) approval,
+        count(case when status = 'untreated' then 1 end) untreated,
+        count(case when status = 'transfer' then 1 end) transfer,
+        count(case when status = 'feedback' then 1 end) feedback,
+        count(case when status = 'finish' then 1 end) finish
+        from (select * from (
+        <choose>
+            <when test="roleName != null and roleName !='大区观察员'">
+                SELECT
+                t.id,
+                t.documents_number,
+                t.status,
+                t.submit_people,
+                t.submit_people_id,
+                t.submit_department,
+                t.submit_time,
+                t.contacted_people,
+                t.contacted_department,
+                t.advice,
+                t.problem_clue_field,
+                t.risk_lever,
+                t.anonymous_type,
+                t.reply_type,
+                t.reply_time,
+                t.supervision_type,
+                t.submit_department_id,
+                t.problem_type,
+                t.del_type,
+                op1.operation_name
+                FROM
+                (select Max(id) id,supervision_id from t_operation_detail
+                where by_operation_people_id =#{ldapId} group by supervision_id) op
+                inner join t_operation_detail op1 on op.id=op1.id
+                inner join t_my_supervision t on op.supervision_id=t.id
+                UNION
+            </when>
+        </choose>
+        SELECT
+        s.id,
+        s.documents_number,
+        s.status,
+        s.submit_people,
+        s.submit_people_id,
+        s.submit_department,
+        s.submit_time,
+        s.contacted_people,
+        s.contacted_department,
+        s.advice,
+        s.problem_clue_field,
+        s.risk_lever,
+        s.anonymous_type,
+        s.reply_type,
+        s.reply_time,
+        s.supervision_type,
+        s.submit_department_id,
+        s.problem_type,
+        s.del_type,
+        s.spare
+        FROM
+        t_my_supervision s
+        <choose>
+            <when test="roleName != null and roleName !='大区观察员'">
+                WHERE
+                s.submit_people_id = #{ldapId}
+                <if test="roleNameDepartment == '部门负责人'">
+                    or s.submit_department_id=#{submitDepartmentId}
+                </if>
+            </when>
+        </choose>
+        ) x
+        <trim prefix="where" prefixOverrides="and">
+            <if test="id != null and id != '' ">
+                id =#{id}
+            </if>
+            <if test="supervisionType != null and supervisionType != '' ">
+                and supervision_type=#{supervisionType}
+            </if>
+            <if test="documentsNumber != null and documentsNumber != '' ">
+                and documents_number like "%"#{documentsNumber}"%"
+            </if>
+            <if test="problemClueField != null and problemClueField != '' ">
+                and problem_clue_field=#{problemClueField}
+            </if>
+            <if test="problemType != null and problemType != '' ">
+                and problem_type=#{problemType}
+            </if>
+            <if test="riskLever != null and riskLever != '' ">
+                and risk_lever=#{riskLever}
+            </if>
+            <if test="startTime != null and startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(submit_time, '%Y-%m-%d') >= DATE_FORMAT(#{startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="endTime != null and endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(submit_time, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="status != null and status != '' ">
+                and status=#{status}
+            </if>
+            <if test="delType != null and delType != '' ">
+                and del_type=#{delType}
+            </if>
+            <if test="roleNameDepartment == '部门负责人' and roleName !='大区观察员'">
+                and submit_department_id=#{submitDepartmentId}
+            </if>
+        </trim>
+        group by id
+        ) su
+    </select>
+
+    <select id="statisticsOne" resultType="com.crc.business.independent.model.vo.result.SupervisionStatisticsVo">
+        select submit_department, count(*) total
+        from t_my_supervision
+        where supervision_type = 'personal'
+          and del_type = 'N'
+          and submit_department is not null
+          and submit_department !=''
+        GROUP BY submit_department
+    </select>
+
+    <select id="statisticsTwo" resultType="com.crc.business.independent.model.vo.result.SupervisionStatisticsVo">
+        select (select count(*) from t_my_supervision where supervision_type = 'personal' and del_type = 'N') total,
+               (select count(*)
+                from t_my_supervision
+                where clean_content IS NOT NULL
+                  and clean_content != '' and supervision_type='personal' and del_type='N') clean_content,
+            (
+        select count(*)
+        from t_my_supervision
+        where work_content IS NOT NULL
+          and work_content != ''
+          and supervision_type='personal'
+          and del_type='N') work_content
+            , (
+        select count(*)
+        from t_my_supervision
+        where risk_content IS NOT NULL
+          and risk_content != ''
+          and supervision_type='personal'
+          and del_type='N') risk_content
+            , (
+        select count(*)
+        from t_my_supervision
+        where advice IS NOT NULL and advice != '' and supervision_type='personal' and del_type='N') advice
+    </select>
+
+
+    <select id="statisticsThree" resultType="com.crc.business.independent.model.vo.result.SupervisionStatisticsVo"
+            parameterType="String">
+        select status, count(*) total
+        from t_my_supervision
+        where supervision_type = 'personal'
+          and del_type = 'N'
+        GROUP BY status
+    </select>
+
+    <select id="top" resultType="Integer">
+        UPDATE t_my_supervision SET top_type=#{topType},update_time=now() where id =#{id}
+    </select>
+</mapper>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.independent.dao.SettingParameterDao">
+    <resultMap id="resultData" type="com.crc.business.independent.model.vo.result.SettingParameterVo">
+        <result column="uid" property="uid"></result>
+        <result column="dictionary_id" property="dictionaryId"></result>
+        <result column="type" property="type"></result>
+        <result column="reminder_time" property="reminderTime"></result>
+        <result column="expire_time" property="expireTime"></result>
+        <result column="remark" property="remark"></result>
+        <result column="extract_amount" property="extractAmount"></result>
+        <collection property="list"
+                    ofType="com.crc.business.independent.model.vo.result.SettingParamConditionVo">
+            <id column="id"></id>
+            <result column="is_information" property="isInformation"></result>
+            <result column="information" property="information"></result>
+            <result column="before_field" property="beforeField"></result>
+            <result column="before_field_operation" property="beforeFieldOperation"></result>
+            <result column="before_field_value" property="beforeFieldValue"></result>
+            <result column="is_information_deter" property="isInformationDeter"></result>
+            <result column="information_deter" property="informationDeter"></result>
+            <result column="determination_Field" property="determinationField"></result>
+            <result column="determination_field_operation" property="determinationFieldOperation"></result>
+            <result column="determination_field_value" property="determinationFieldValue"></result>
+            <result column="union_operation" property="unionOperation"></result>
+        </collection>
+    </resultMap>
+
+    <select id="list" resultType="com.crc.business.independent.model.vo.result.SettingParameterListVo">
+        SELECT
+        sp.uid,
+        sd.type_name dictionaryName,
+        sp.type typeName,
+        sp.remark,
+        sp.update_time,
+        sp.create_time
+        FROM
+        t_setting_parameter sp left join t_dictionaries_detailed sd on sp.dictionary_id=sd.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="settingParamSearch.dictionaryId != null">
+                and sp.dictionary_id =#{settingParamSearch.dictionaryId}
+            </if>
+            <if test="settingParamSearch.type != null and settingParamSearch.type != ''">
+                and sp.type =#{settingParamSearch.type}
+            </if>
+        </trim>
+        order by sp.create_time desc
+    </select>
+
+    <select id="getListByType" resultType="com.crc.business.independent.model.vo.result.SettingParameterListVo">
+        SELECT sp.uid,
+        sd.type_name dictionaryName,
+        sd.type_code typeCode,
+        sp.extract_amount
+        FROM t_setting_parameter sp
+        left join t_dictionaries_detailed sd on sp.dictionary_id = sd.id
+        <trim prefix="where" prefixOverrides="and">
+            <if test="settingParam.dictionaryId != null">
+                and sp.dictionary_id =#{settingParam.dictionaryId}
+            </if>
+            <if test="settingParam.type != null and settingParam.type != ''">
+                and sp.type =#{settingParam.type}
+            </if>
+        </trim>
+    </select>
+
+    <select id="detail" resultMap="resultData">
+        select sp.uid,
+               sp.dictionary_id,
+               sp.type,
+               sp.reminder_time,
+               sp.expire_time,
+               sp.remark,
+               sp.extract_amount,
+               spc.id,
+               spc.is_information,
+               spc.information,
+               spc.before_field,
+               spc.before_field_operation,
+               spc.before_field_value,
+               spc.is_information_deter,
+               spc.information_deter,
+               spc.determination_Field,
+               spc.determination_field_operation,
+               spc.determination_field_value,
+               spc.union_operation
+        from t_setting_parameter sp
+                 left join t_setting_parameter_condition spc on sp.uid = spc.param_id
+        where sp.uid = #{uid}
+    </select>
+</mapper>

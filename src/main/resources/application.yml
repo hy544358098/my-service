@@ -1,0 +1,24 @@
+server:
+  port: 8801
+spring:
+  application:
+    name: supervise-app
+  profiles:
+    active: dev
+  #业务流程字典code
+business:
+  process:
+    code: business_process
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus
+
+logging:
+  level:
+    com.crc.common.feign.oa.*: debug
+  #邮箱定时任务触发时间
+mail:
+  schedules: 0 0 4 * * ?

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.oa.dao.PendingDao">
+
+    <select id="pending" resultType="com.crc.business.oa.model.vo.result.PendingVo">
+        select * from
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                v_pending_supervisor where(
+                ((monitor_status='special_attention' or monitor_status='warning') and alert_node='untreated') or
+                (alert_node='feedback' or (table_name='personal' and alert_node='untreated')))
+            </when>
+            <otherwise>
+                v_pending_staff where(
+                alert_node='transfer' and (operation_id in (select Max(id) from t_oa_operation
+                where by_operation_people_id = #{param.ldapId} group by uid) or operation_id in (select Max(id) from
+                t_operation_detail
+                where by_operation_people_id = #{param.ldapId} group by supervision_id)) and operation_name='transfer')
+            </otherwise>
+        </choose>
+        <if test="param.documentNumber != null and param.documentNumber != ''">
+            and document_number LIKE concat('%',#{param.documentNumber},'%')
+        </if>
+        <if test="param.tableName != null and param.tableName != ''">
+            and table_name LIKE concat('%',#{param.tableName},'%')
+        </if>
+        <if test="param.alertNode != null and param.alertNode != ''">
+            and alert_node =#{param.alertNode}
+        </if>
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        GROUP BY uid
+        order by update_time desc
+    </select>
+
+    <select id="already" resultType="com.crc.business.oa.model.vo.result.PendingVo">
+        select * from
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                v_pending_staff where(
+                (operation_name='transfer' or operation_name='finish') and operation_people_id=#{param.ldapId})
+            </when>
+            <otherwise>
+                v_pending_staff where(
+                operation_name='feedback' and operation_people_id=#{param.ldapId})
+            </otherwise>
+        </choose>
+        <if test="param.documentNumber != null and param.documentNumber != ''">
+            and document_number LIKE concat('%',#{param.documentNumber},'%')
+        </if>
+        <if test="param.tableName != null and param.tableName != ''">
+            and table_name LIKE concat('%',#{param.tableName},'%')
+        </if>
+        <if test="param.alertNode != null and param.alertNode != ''">
+            and alert_node =#{param.alertNode}
+        </if>
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        group by uid
+        order by update_time desc
+    </select>
+
+
+    <select id="findCompetence" resultType="com.crc.business.oa.model.vo.result.PendingVo">
+        select *
+        from v_pending_staff a
+        where
+        a.alert_node = 'transfer'
+        and a.by_operation_people_id = #{param.ldapId}
+        <if test="param.uidList != null and param.uidList.size() > 0 ">
+            and a.uid in
+            <foreach collection="param.uidList" item="item" index="idx"  open="("   separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="param.documentNumber != null and param.documentNumber != ''">
+            and a.document_number LIKE concat('%',#{param.documentNumber},'%')
+        </if>
+        <if test="param.tableName != null and param.tableName != ''">
+            and a.table_name LIKE concat('%',#{param.tableName},'%')
+        </if>
+        <if test="param.alertNode != null and param.alertNode != ''">
+            and a.alert_node =#{param.alertNode}
+        </if>
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        GROUP BY a.uid
+        order by a.update_time desc
+    </select>
+
+
+    <select id="informList" resultType="com.crc.business.oa.model.vo.result.InformVo">
+        select x.*,z.operation_people as 'warning_people' from
+        (select 'engineerDisputeClaims' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_cost_disputeclaims b ON a.uid=b.uid
+        UNION
+        select 'designChanges' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_design_change b ON a.uid = b.uid
+        UNION
+        select 'caseFilingApproval' AS `table_name`,b.apply_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_law_casefilingapproval b ON a.uid = b.uid
+        UNION
+        select 'marketingAdjustment' AS `table_name`,b.apply_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_marketing_annual_budget b ON a.uid = b.uid
+        UNION
+        select 'marketingBudgetApply' AS `table_name`,b.applicant AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_marketing_apply b ON a.uid = b.uid
+        UNION
+        select 'marketingRestart' AS `table_name`,b.apply_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_marketing_fuse b ON a.uid = b.uid
+        UNION
+        select 'partyOrganizationLife' AS `table_name`,b.creator AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_organization_life b ON a.uid = b.uid
+        UNION
+        select 'projectChanges' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_project_change b ON a.uid = b.uid
+        UNION
+        select 'purchaseApprove' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_purchase_cloud_supplier b ON a.uid = b.uid
+        UNION
+        select 'tendersApprove' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_purchase_shortlisted b ON a.uid = b.uid
+        UNION
+        select 'purchaseChange' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_purchase_singlesource b ON a.uid = b.uid
+        UNION
+        select 'specialResources' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
+        LEFT JOIN t_oa_purchase_special b ON a.uid = b.uid
+        UNION
+        select 'personal' AS `table_name`,b.submit_people AS operator_name,b.id,b.id as 'uid',b.documents_number as document_number,'' as monitor_status,b.status,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_operation_detail a
+        LEFT JOIN t_my_supervision b ON a.supervision_id = b.id where b.del_type='N')x
+        LEFT JOIN (select uid,operation_people from t_oa_operation where operation_name='warning')z ON x.uid=z.uid
+        where x.operation_name='inform' and x.uid is NOT NULL
+        <if test="param.ldapId != null and param.ldapId != ''">
+            and x.by_operation_people_id=#{param.ldapId}
+        </if>
+        <if test="param.documentNumber != null and param.documentNumber != ''">
+            and x.document_number LIKE concat('%',#{param.documentNumber},'%')
+        </if>
+        <if test="param.tableName != null and param.tableName != ''">
+            and x.table_name LIKE concat('%',#{param.tableName},'%')
+        </if>
+        <if test="param.alertNode != null and param.alertNode != ''">
+            and x.alert_node =#{param.alertNode}
+        </if>
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(x.operation_time, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(x.operation_time, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        order by x.operation_time desc
+    </select>
+</mapper>

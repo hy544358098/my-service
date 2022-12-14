@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.oa.dao.CloudSupplierDao">
+    <resultMap id="result" type="com.crc.business.oa.model.vo.result.CloudSupplierVO">
+        <result column="uid" property="uid"></result>
+        <result column="document_number" property="documentNumber"></result>
+        <result column="title" property="title"></result>
+        <result column="dept_name" property="deptName"></result>
+        <result column="apply_dept" property="applyDept"></result>
+        <result column="operator_name" property="operatorName"></result>
+        <result column="contact_inform" property="contactInform"></result>
+        <result column="phone" property="phone"></result>
+        <result column="introduction" property="introduction"></result>
+        <result column="approval_status" property="approvalStatus"></result>
+        <result column="has_read" property="hasRead"></result>
+        <result column="monitor_status" property="monitorStatus"></result>
+        <result column="alert_node" property="alertNode"></result>
+        <result column="mixed_field" property="mixedField"></result>
+        <result column="operation_node_name" property="operationNodeName"></result>
+    </resultMap>
+
+    <select id="list" resultMap="result">
+        SELECT
+        t.uid,
+        t.id,
+        t.document_number,
+        t.title,
+        t.dept_name,
+        t.apply_dept,
+        t.operator_name,
+        t.contact_inform,
+        t.phone,
+        t.introduction,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.mixed_field,
+        t.statistics_city_name
+        <if test="cloudSupplier.roleName != null and cloudSupplier.roleName !='admin'">
+            ,op1.operation_name operation_node_name
+        </if>
+        FROM
+        <choose>
+            <when test="cloudSupplier.roleName != null and cloudSupplier.roleName =='admin'">
+                t_oa_purchase_cloud_supplier t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{cloudSupplier.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_purchase_cloud_supplier t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="cloudSupplier.id != null and cloudSupplier.id != '' ">
+                t.id =#{cloudSupplier.id}
+            </if>
+            <if test="cloudSupplier.deptName != null and cloudSupplier.deptName != ''">
+                and t.dept_name LIKE concat('%',#{cloudSupplier.deptName},'%')
+            </if>
+            <if test="cloudSupplier.applyDept != null and cloudSupplier.applyDept != ''">
+                and t.apply_dept LIKE concat('%',#{cloudSupplier.applyDept},'%')
+            </if>
+            <if test="cloudSupplier.operatorName != null and cloudSupplier.operatorName != ''">
+                and t.operator_name LIKE concat('%',#{cloudSupplier.operatorName},'%')
+            </if>
+            <if test="cloudSupplier.statisticsCityName != null and cloudSupplier.statisticsCityName != ''">
+                and t.statistics_city_name LIKE concat('%',#{cloudSupplier.statisticsCityName},'%')
+            </if>
+            <if test="cloudSupplier.alertNode != null and cloudSupplier.alertNode != ''">
+                and t.alert_node =#{cloudSupplier.alertNode}
+            </if>
+            <if test="cloudSupplier.hasRead != null and cloudSupplier.hasRead != ''">
+                and t.has_read =#{cloudSupplier.hasRead}
+            </if>
+            <if test="cloudSupplier.monitorStatus != null and cloudSupplier.monitorStatus != ''">
+                and t.monitor_status =#{cloudSupplier.monitorStatus}
+            </if>
+        </trim>
+        order by t.update_time desc
+    </select>
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+        select count(*) total,
+        count(case when t.has_read='beread'then 1 end) beread,
+        count(case when t.monitor_status='special_attention'then 1 end) specialAttention,
+        count(case when t.monitor_status='warning'then 1 end) warning,
+        count(case when t.monitor_status='normal'then 1 end) normal
+        from
+        <choose>
+            <when test="cloudSupplier.roleName != null and cloudSupplier.roleName =='admin'">
+                t_oa_purchase_cloud_supplier t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{cloudSupplier.ldapId} group by uid) op
+                inner join t_oa_purchase_cloud_supplier t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="cloudSupplier.id != null and cloudSupplier.id != '' ">
+                t.id =#{cloudSupplier.id}
+            </if>
+            <if test="cloudSupplier.deptName != null and cloudSupplier.deptName != ''">
+                and t.dept_name LIKE concat('%',#{cloudSupplier.deptName},'%')
+            </if>
+            <if test="cloudSupplier.applyDept != null and cloudSupplier.applyDept != ''">
+                and t.apply_dept LIKE concat('%',#{cloudSupplier.applyDept},'%')
+            </if>
+            <if test="cloudSupplier.operatorName != null and cloudSupplier.operatorName != ''">
+                and t.operator_name LIKE concat('%',#{cloudSupplier.operatorName},'%')
+            </if>
+            <if test="cloudSupplier.alertNode != null and cloudSupplier.alertNode != ''">
+                and t.alert_node =#{cloudSupplier.alertNode}
+            </if>
+            <if test="cloudSupplier.hasRead != null and cloudSupplier.hasRead != ''">
+                and t.has_read =#{cloudSupplier.hasRead}
+            </if>
+            <if test="cloudSupplier.monitorStatus != null and cloudSupplier.monitorStatus != ''">
+                and t.monitor_status =#{cloudSupplier.monitorStatus}
+            </if>
+        </trim>
+    </select>
+
+
+    <select id="statistics" resultType="com.crc.business.oa.model.vo.result.CloudSupplierStatisticsVo">
+        select a.statistics_city_name, a.uid, b.table_info, a.apply_dept, a.introduction,a.apply_date
+        from t_oa_purchase_cloud_supplier a
+                 LEFT JOIN
+             t_oa_active_form b
+             ON a.uid = b.uid
+        where b.table_name = '引进信息'
+                  and a.statistics_city_name is not null
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+    </select>
+
+
+    <select id="statisticsDay" resultType="com.crc.business.oa.model.vo.result.CloudSupplierStatisticsVo">
+        select a.statistics_city_name, a.uid, b.table_info, a.apply_dept, a.introduction,a.apply_date
+        from t_oa_purchase_cloud_supplier a
+                 LEFT JOIN
+             t_oa_active_form b
+             ON a.uid = b.uid
+        where b.table_name = '引进信息'
+          and a.statistics_city_name is not null
+        and TO_DAYS(a.apply_date) = TO_DAYS(NOW())
+    </select>
+
+
+    <select id="statisticsPage" resultType="com.crc.business.oa.model.vo.result.CloudSupplierStatisticsVo"
+            parameterType="com.crc.business.oa.model.vo.request.CloudSupplierStatisticsParam">
+        select a.statistics_city_name, a.uid,b.table_info,a.apply_dept,a.introduction,a.apply_date,a.approval_status
+        from t_oa_purchase_cloud_supplier a
+        LEFT JOIN
+        t_oa_active_form b
+        ON a.uid = b.uid
+        where b.table_name = '引进信息'
+        and a.statistics_city_name is not null
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.supplyName != null and param.supplyName != ''">
+            and b.table_info LIKE concat('%',#{param.supplyName},'%')
+        </if>
+        <if test="param.applyDept != null and param.applyDept != ''">
+            and a.apply_dept LIKE concat('%',#{param.applyDept},'%')
+        </if>
+        <if test="param.statisticsCityName != null and param.statisticsCityName != ''">
+            and a.statistics_city_name LIKE concat('%',#{param.statisticsCityName},'%')
+        </if>
+        <if test="param.approvalStatus != null and param.approvalStatus != ''">
+            and a.approval_status = #{param.approvalStatus}
+        </if>
+
+    </select>
+</mapper>

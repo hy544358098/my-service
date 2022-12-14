@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.independent.dao.SupervisionDatabaseInspectionDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.independent.model.entity.SupervisionDatabaseInspection" id="tSupervisionDatabaseInspectionMap">
+        <result property="id" column="id"/>
+        <result property="year" column="year"/>
+        <result property="handleStatus" column="handle_status"/>
+        <result property="problemClueTime" column="problem_clue_time"/>
+        <result property="caseNumber" column="case_number"/>
+        <result property="caseName" column="case_name"/>
+        <result property="caseContent" column="case_content"/>
+        <result property="examineType" column="examine_type"/>
+        <result property="caseEstablishType" column="case_establish_type"/>
+        <result property="problemClueField" column="problem_clue_field"/>
+        <result property="violationType" column="violation_type"/>
+        <result property="handlePeopleId" column="handle_people_id"/>
+        <result property="sex" column="sex"/>
+        <result property="department" column="department"/>
+        <result property="rank" column="rank"/>
+        <result property="punishmentType" column="punishment_type"/>
+        <result property="punishmentDetails" column="punishment_details"/>
+        <result property="punishmentTime" column="punishment_time"/>
+        <result property="validityTime" column="validity_time"/>
+        <result property="violationMoney" column="violation_money"/>
+        <result property="toSaveMoney" column="to_save_money"/>
+        <result property="deductionMoney" column="deduction_money"/>
+        <result property="activeTurnIn" column="active_turn_in"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="clueSource" column="clue_source"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+
+    <select id="statisticsOne" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
+        select * from (
+                          select #{date}-6 year,count(*) total from t_supervision_database_inspection where year=#{date}-6 UNION
+                          select #{date}-5 year,count(*) total from t_supervision_database_inspection where year=#{date}-5 UNION
+                          select #{date}-4 year,count(*) total from t_supervision_database_inspection where year=#{date}-4 UNION
+                          select #{date}-3 year,count(*) total from t_supervision_database_inspection where year=#{date}-3 UNION
+                          select #{date}-2 year,count(*) total from t_supervision_database_inspection where year=#{date}-2 UNION
+                          select #{date}-1 year,count(*) total from t_supervision_database_inspection where year=#{date}-1 UNION
+                          select #{date} year,count(*) total from t_supervision_database_inspection where year=#{date}
+                      ) a
+    </select>
+
+    <select id="statisticsTwo" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo">
+        select problem_clue_field,count(*) total from t_supervision_database_inspection GROUP BY problem_clue_field
+    </select>
+
+
+    <select id="statisticsThree" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
+        select * from (
+                          select #{date} year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date} and punishment_type is not null GROUP BY punishment_type  UNION
+                          select #{date}-1 year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date}-1 and punishment_type is not null GROUP BY punishment_type  UNION
+                          select #{date}-2 year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date}-2 and punishment_type is not null GROUP BY punishment_type  UNION
+                          select #{date}-3 year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date}-3 and punishment_type is not null GROUP BY punishment_type  UNION
+                          select #{date}-4 year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date}-4 and punishment_type is not null GROUP BY punishment_type  UNION
+                          select #{date}-5 year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date}-5 and punishment_type is not null GROUP BY punishment_type  UNION
+                          select #{date}-6 year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date}-6 and punishment_type is not null GROUP BY punishment_type
+                      ) a
+
+    </select>
+
+    <select id="statisticsFour" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
+        select
+            (select IFNULL(SUM(money1),0) ChaseDirtyMoney from (
+                                                         select SUM(violation_money) money1 from t_supervision_database_inspection UNION
+                                                         select SUM(deduction_money) money1 from t_supervision_database_inspection UNION
+                                                         select SUM(active_turn_in) money1 from t_supervision_database_inspection
+                                                     ) a)ChaseDirtyMoney,
+            (select IFNULL(SUM(money),0) RedeemLossMoney from (
+                                                        select SUM(drop_amount) money from t_supervision_database_inspection UNION
+                                                        select SUM(to_save_money) money from t_supervision_database_inspection
+                                                    )b )RedeemLossMoney,
+            (select IFNULL(SUM(violation_money),0) violation_money from t_supervision_database_inspection) violation_money ,
+            (select IFNULL(SUM(deduction_money),0) deduction_money from t_supervision_database_inspection) deduction_money ,
+            (select IFNULL(SUM(active_turn_in),0) active_turn_in from t_supervision_database_inspection) active_turn_in ,
+            (select IFNULL(SUM(drop_amount),0) drop_amount from t_supervision_database_inspection ) drop_amount ,
+            (select IFNULL(SUM(to_save_money),0) to_save_money from t_supervision_database_inspection ) to_save_money
+    </select>
+
+</mapper>

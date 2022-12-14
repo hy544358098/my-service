@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.crc.business.oa.dao.MarketingAnnualBudgetDao">
+    <resultMap id="result" type="com.crc.business.oa.model.vo.result.MarketingAnnualBudgetVO">
+        <result column="uid" property="uid"></result>
+        <result column="document_number" property="documentNumber"></result>
+        <result column="apply_date" property="applyDate"></result>
+        <result column="city_firm" property="cityFirm"></result>
+        <result column="apply_name" property="applyName"></result>
+        <result column="project_name" property="projectName"></result>
+        <result column="budget_name" property="budgetName"></result>
+        <result column="region" property="region"></result>
+        <result column="budget_dept" property="budgetDept"></result>
+        <result column="budget_amount" property="budgetAmount"></result>
+        <result column="approval_contract_amount" property="approvalContractAmount"></result>
+        <result column="approval_fee_rate" property="approvalFeeRate"></result>
+        <result column="approval_fee" property="approvalFee"></result>
+        <result column="remark" property="remark"></result>
+        <result column="approval_status" property="approvalStatus"></result>
+        <result column="has_read" property="hasRead"></result>
+        <result column="monitor_status" property="monitorStatus"></result>
+        <result column="alert_node" property="alertNode"></result>
+        <result column="mixed_field" property="mixedField"></result>
+        <result column="operation_node_name" property="operationNodeName"></result>
+    </resultMap>
+
+    <select id="list" resultMap="result">
+        SELECT
+        t.uid,
+        t.id,
+        t.document_number,
+        t.city_firm,
+        t.apply_date,
+        t.apply_name,
+        t.project_name,
+        t.budget_name,
+        t.region,
+        t.budget_dept,
+        t.budget_amount,
+        t.approval_contract_amount,
+        t.approval_fee_rate,
+        t.approval_fee,
+        t.remark,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.mixed_field
+        <if test="marketAnnualBudget.roleName != null and marketAnnualBudget.roleName !='admin'">
+            ,op1.operation_name operation_node_name
+        </if>
+        FROM
+        <choose>
+            <when test="marketAnnualBudget.roleName != null and marketAnnualBudget.roleName =='admin'">
+                t_oa_marketing_annual_budget t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{marketAnnualBudget.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_marketing_annual_budget t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="marketAnnualBudget.id != null and marketAnnualBudget.id != '' ">
+                t.id =#{marketAnnualBudget.id}
+            </if>
+            <if test="marketAnnualBudget.documentNumber != null and marketAnnualBudget.documentNumber != ''">
+                and t.document_number LIKE concat('%',#{marketAnnualBudget.documentNumber},'%')
+            </if>
+            <if test="marketAnnualBudget.projectName != null and marketAnnualBudget.projectName != ''">
+                and t.project_name LIKE concat('%',#{marketAnnualBudget.projectName},'%')
+            </if>
+            <if test="marketAnnualBudget.cityFirm != null and marketAnnualBudget.cityFirm != ''">
+                and t.city_firm LIKE concat('%',#{marketAnnualBudget.cityFirm},'%')
+            </if>
+            <if test="marketAnnualBudget.budgetName != null and marketAnnualBudget.budgetName != ''">
+                and t.budget_name LIKE concat('%',#{marketAnnualBudget.budgetName},'%')
+            </if>
+            <if test="marketAnnualBudget.alertNode != null and marketAnnualBudget.alertNode != ''">
+                and t.alert_node =#{marketAnnualBudget.alertNode}
+            </if>
+            <if test="marketAnnualBudget.hasRead != null and marketAnnualBudget.hasRead != ''">
+                and t.has_read =#{marketAnnualBudget.hasRead}
+            </if>
+            <if test="marketAnnualBudget.monitorStatus != null and marketAnnualBudget.monitorStatus != ''">
+                and t.monitor_status =#{marketAnnualBudget.monitorStatus}
+            </if>
+        </trim>
+        order by t.update_time desc
+    </select>
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+        select count(*) total,
+        count( CASE WHEN t.has_read = 'beread' THEN 1 END ) beread,
+        count( CASE WHEN t.monitor_status = 'special_attention' THEN 1 END ) specialAttention,
+        count( CASE WHEN t.monitor_status = 'warning' THEN 1 END ) warning,
+        count( CASE WHEN t.monitor_status = 'normal' THEN 1 END ) normal
+        from
+        <choose>
+            <when test="marketAnnualBudget.roleName != null and marketAnnualBudget.roleName =='admin'">
+                t_oa_marketing_annual_budget t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{marketAnnualBudget.ldapId} group by uid) op
+                inner join t_oa_marketing_annual_budget t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="marketAnnualBudget.id != null and marketAnnualBudget.id != '' ">
+                t.id =#{marketAnnualBudget.id}
+            </if>
+            <if test="marketAnnualBudget.documentNumber != null and marketAnnualBudget.documentNumber != ''">
+                and t.document_number LIKE concat('%',#{marketAnnualBudget.documentNumber},'%')
+            </if>
+            <if test="marketAnnualBudget.projectName != null and marketAnnualBudget.projectName != ''">
+                and t.project_name LIKE concat('%',#{marketAnnualBudget.projectName},'%')
+            </if>
+            <if test="marketAnnualBudget.cityFirm != null and marketAnnualBudget.cityFirm != ''">
+                and t.city_firm LIKE concat('%',#{marketAnnualBudget.cityFirm},'%')
+            </if>
+            <if test="marketAnnualBudget.budgetName != null and marketAnnualBudget.budgetName != ''">
+                and t.budget_name LIKE concat('%',#{marketAnnualBudget.budgetName},'%')
+            </if>
+            <if test="marketAnnualBudget.alertNode != null and marketAnnualBudget.alertNode != ''">
+                and t.alert_node =#{marketAnnualBudget.alertNode}
+            </if>
+            <if test="marketAnnualBudget.hasRead != null and marketAnnualBudget.hasRead != ''">
+                and t.has_read =#{marketAnnualBudget.hasRead}
+            </if>
+            <if test="marketAnnualBudget.monitorStatus != null and marketAnnualBudget.monitorStatus != ''">
+                and t.monitor_status =#{marketAnnualBudget.monitorStatus}
+            </if>
+        </trim>
+    </select>
+</mapper>

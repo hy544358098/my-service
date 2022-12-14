@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.oa.dao.DesignChangeDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.vo.result.DesignChangeVo" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="documentNumber" column="document_number"/>
+        <result property="cityFirm" column="city_firm"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="title" column="title"/>
+        <result property="emergencyLevel" column="emergency_level"/>
+        <result property="region" column="region"/>
+        <result property="project" column="project"/>
+        <result property="projectStaging" column="project_staging"/>
+        <result property="applyDepartment" column="apply_department"/>
+        <result property="handlerName" column="handler_name"/>
+        <result property="reasonForChange" column="reason_for_change"/>
+        <result property="designModificationNoticeNumber" column="design_modification_notice_number"/>
+        <result property="projectChangeApplicationNumber" column="project_change_application_number"/>
+        <result property="proposeName" column="propose_name"/>
+        <result property="whetherAssess" column="whether_assess"/>
+        <result property="changeCategory" column="change_category"/>
+        <result property="reasonExplanation" column="reason_explanation"/>
+        <result property="changePartAndContent" column="change_part_and_content"/>
+        <result property="changeStatusPart" column="change_status_part"/>
+        <result property="relatedMajors" column="related_majors"/>
+        <result property="estimateImpactConstructionPeriod" column="estimate_impact_construction_period"/>
+        <result property="estimatedContentOfClaim" column="estimated_content_of_claim"/>
+        <result property="impactOfThisChangeBudget" column="impact_of_this_change_budget"/>
+        <result property="invalidCost" column="invalid_cost"/>
+        <result property="responsibleDepartment" column="responsible_department"/>
+        <result property="invalidCostAmount" column="invalid_cost_amount"/>
+        <result property="whetherChangeContract" column="whether_change_contract"/>
+        <result property="contractDepartmentEstimates" column="contract_department_estimates"/>
+        <result property="whetherMakeChanges" column="whether_make_changes"/>
+        <result property="whetherIncludedEffectiveCumulativeChange"
+                column="whether_included_effective_cumulative_change"/>
+        <result property="subsequentChangeResponsibleDepartment" column="subsequent_change_responsible_department"/>
+        <result property="notIncludedEffectiveCumulativeChangeReason"
+                column="not_included_effective_cumulative_change_reason"/>
+        <result property="projectConstructionProgress" column="project_construction_progress"/>
+        <result property="costIncreaseDecreaseDescription" column="cost_increase_decrease_description"/>
+        <result property="ineffectiveCostResponsibleDepartment" column="ineffective_cost_responsible_department"/>
+        <result property="changeTotalEstimatedAmount" column="change_total_estimated_amount"/>
+        <result property="estimatedStartTime" column="estimated_start_time"/>
+        <result property="estimatedEndTime" column="estimated_end_time"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="hasRead" column="has_read"/>
+        <result property="monitorStatus" column="monitor_status"/>
+        <result property="alertNode" column="alert_node"/>
+        <result property="mixedField" column="mixed_field"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="finishType" column="finish_type"/>
+    </resultMap>
+
+
+    <select id="list" resultMap="result">
+        SELECT t.uid,
+        t.id,
+        t.document_number,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.city_firm,
+        t.apply_date,
+        t.title,
+        t.emergency_level,
+        t.region,
+        t.project,
+        t.project_staging,
+        t.apply_department,
+        t.operator_name,
+        t.design_modification_notice_number,
+        t.project_change_application_number,
+        t.propose_name,
+        t.reason_for_change,
+        t.whether_assess,
+        t.change_category,
+        t.reason_explanation,
+        t.change_total_estimated_amount,
+        t.impact_of_this_change_budget,
+        t.cost_increase_decrease_description
+        <if test="param.roleName != null and param.roleName !='大区观察员'">
+            ,op1.operation_name,op1.by_operation_people_id
+        </if>
+        FROM
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                t_oa_design_change t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{param.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_design_change t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                t.id =#{param.id}
+            </if>
+            <if test="param.documentNumber != null and param.documentNumber != ''">
+                and t.document_number LIKE concat('%',#{param.documentNumber},'%')
+            </if>
+            <if test="param.region != null and param.region != ''">
+                and t.region LIKE concat('%',#{param.region},'%')
+            </if>
+            <if test="param.applyDate != null and param.applyDate != ''">
+                and t.apply_date LIKE concat('%',#{param.applyDate},'%')
+            </if>
+            <if test="param.emergencyLevel != null and param.emergencyLevel != ''">
+                and t.emergency_level LIKE concat('%',#{param.emergencyLevel},'%')
+            </if>
+            <if test="param.alertNode != null and param.alertNode != ''">
+                and t.alert_node =#{param.alertNode}
+            </if>
+            <if test="param.hasRead != null and param.hasRead != ''">
+                and t.has_read =#{param.hasRead}
+            </if>
+            <if test="param.monitorStatus != null and param.monitorStatus != ''">
+                and t.monitor_status =#{param.monitorStatus}
+            </if>
+            <if test="param.applyDate != null and param.applyDate != ''">
+                and t.apply_date LIKE concat('%',#{param.applyDate},'%')
+            </if>
+            <if test="param.statisticsCityName != null and param.statisticsCityName != ''">
+                and t.statistics_city_name =#{param.statisticsCityName}
+            </if>
+            <if test="param.project != null and param.project != ''">
+                and t.project LIKE concat('%',#{param.project},'%')
+            </if>
+            <if test="param.startTime != null and param.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.endTime != null and param.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.approvalStatus != null and param.approvalStatus != ''">
+                and t.approval_status = #{param.approvalStatus}
+            </if>
+        </trim>
+        order by update_time desc
+    </select>
+
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.crc.business.oa.model.vo.request.DesignChangeParam">
+        select count(*) total,
+        count(case when has_read='beread'then 1 end) beread,
+        count(case when monitor_status='special_attention'then 1 end) specialAttention,
+        count(case when monitor_status='warning'then 1 end) warning,
+        count(case when monitor_status='normal'then 1 end) normal
+        from(
+        SELECT
+        t.id,
+        t.document_number,
+        t.apply_date,
+        t.city_firm,
+        t.operator_name,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.emergency_level,
+        t.region
+        FROM
+        <choose>
+            <when test="roleName != null and roleName =='大区观察员'">
+                t_oa_design_change t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_design_change t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        ) oa
+        <trim prefix="where" prefixOverrides="and">
+            <if test="id != null and id != '' ">
+                oa.id =#{id}
+            </if>
+            <if test="documentNumber != null and documentNumber != ''">
+                and oa.document_number LIKE concat('%',#{documentNumber},'%')
+            </if>
+            <if test="region != null and region != ''">
+                and oa.region LIKE concat('%',#{region},'%')
+            </if>
+            <if test="applyDate != null and applyDate != ''">
+                and oa.apply_date LIKE concat('%',#{applyDate},'%')
+            </if>
+            <if test="emergencyLevel != null and emergencyLevel != ''">
+                and oa.emergency_level LIKE concat('%',#{emergencyLevel},'%')
+            </if>
+        </trim>
+    </select>
+
+    <select id="statisticReport" resultType="com.crc.business.oa.model.vo.result.StatisticCommonVo">
+        SELECT a.`statistics_city_name`      cityName,
+               SUM(CONVERT(IFNULL(a.`change_total_estimated_amount`, 0),
+                           DECIMAL (10, 2))) total
+        FROM `t_oa_design_change` a
+        WHERE a.statistics_city_name is not null
+          AND a.statistics_city_name != ''
+        <if test="param.startTime != null and param.startTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+        </if>
+        <if test="param.endTime != null and param.endTime != '' ">
+            <![CDATA[ and DATE_FORMAT(a.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+        </if>
+        GROUP BY a.`statistics_city_name`
+    </select>
+</mapper>

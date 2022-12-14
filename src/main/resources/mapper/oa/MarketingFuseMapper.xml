@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.crc.business.oa.dao.MarketingFuseDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.crc.business.oa.model.vo.result.MarketingFuseVo" id="result">
+        <result property="id" column="id"/>
+        <result property="uid" column="uid"/>
+        <result property="title" column="title"/>
+        <result property="applyDate" column="apply_date"/>
+        <result property="applyName" column="apply_name"/>
+        <result property="budgetDutyDepartment" column="budget_duty_department"/>
+        <result property="projectName" column="project_name"/>
+        <result property="attributionOrganization" column="attribution_organization"/>
+        <result property="budgetVersion" column="budget_version"/>
+        <result property="budgetYear" column="budget_year"/>
+        <result property="projectCycleTargetSignUp" column="project_cycle_target_sign_up"/>
+        <result property="projectCycleTargetCost" column="project_cycle_target_cost"/>
+        <result property="projectCycleTargetRate" column="project_cycle_target_rate"/>
+        <result property="totalCost" column="total_cost"/>
+        <result property="quarterlyIllustrate" column="quarterly_illustrate"/>
+        <result property="changeCategory" column="change_category"/>
+        <result property="reasonExplanation" column="reason_explanation"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="hasRead" column="has_read"/>
+        <result property="monitorStatus" column="monitor_status"/>
+        <result property="alertNode" column="alert_node"/>
+        <result property="mixedField" column="mixed_field"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createTime" column="create_time"/>
+        <result property="finishType" column="finish_type"/>
+    </resultMap>
+
+
+    <select id="list" resultMap="result">
+        SELECT t.uid,
+        t.id,
+        t.document_number,
+        t.approval_status,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node,
+        t.apply_name,
+        t.apply_date,
+        t.title,
+        t.budget_duty_department,
+        t.project_name,
+        t.attribution_organization,
+        t.budget_version,
+        t.budget_year,
+        t.project_cycle_target_sign_up,
+        t.project_cycle_target_cost,
+        t.project_cycle_target_rate,
+        t.total_cost,
+        t.quarterly_illustrate
+        <if test="param.roleName != null and param.roleName !='大区观察员'">
+            ,op1.operation_name,op1.by_operation_people_id
+        </if>
+        FROM
+        <choose>
+            <when test="param.roleName != null and param.roleName =='大区观察员'">
+                t_oa_marketing_fuse t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{param.ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_marketing_fuse t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        <trim prefix="where" prefixOverrides="and">
+            <if test="param.id != null and param.id != '' ">
+                t.id =#{param.id}
+            </if>
+            <if test="param.documentNumber != null and param.documentNumber != '' ">
+                and t.document_number like "%" #{param.documentNumber} "%"
+            </if>
+            <if test="param.projectName != null and param.projectName != '' ">
+                and t.project_name like "%" #{param.projectName} "%"
+            </if>
+            <if test="param.attributionOrganization != null and param.attributionOrganization != '' ">
+                and t.attribution_organization like "%" #{param.attributionOrganization} "%"
+            </if>
+            <if test="param.budgetDutyDepartment != null and param.budgetDutyDepartment != '' ">
+                and t.budget_duty_department like "%" #{param.budgetDutyDepartment} "%"
+            </if>
+            <if test="param.startTime != null and param.startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{param.startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.endTime != null and param.endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(t.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{param.endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="param.alertNode != null and param.alertNode != '' ">
+                and t.alert_node=#{param.alertNode}
+            </if>
+            <if test="param.hasRead != null and param.hasRead != ''">
+                and t.has_read =#{param.hasRead}
+            </if>
+            <if test="param.monitorStatus != null and param.monitorStatus != ''">
+                and t.monitor_status =#{param.monitorStatus}
+            </if>
+        </trim>
+        order by update_time desc
+    </select>
+
+
+    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.crc.business.oa.model.vo.request.MarketingFuseParam">
+        select count(*) total,
+        count(case when has_read = 'beread' then 1 end) beread,
+        count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
+        count(case when monitor_status = 'warning' then 1 end) warning,
+        count(case when monitor_status = 'normal' then 1 end) normal
+        from (
+        SELECT
+        t.id,
+        t.document_number,
+        t.project_name,
+        t.attribution_organization,
+        t.budget_duty_department,
+        t.apply_date,
+        t.has_read,
+        t.monitor_status,
+        t.alert_node
+        FROM
+        <choose>
+            <when test="roleName != null and roleName =='大区观察员'">
+                t_oa_marketing_fuse t
+            </when>
+            <otherwise>
+                (select Max(id) id,uid from t_oa_operation
+                where by_operation_people_id =#{ldapId} group by uid) op
+                inner join t_oa_operation op1 on op.id=op1.id
+                inner join t_oa_marketing_fuse t on op.uid=t.uid
+            </otherwise>
+        </choose>
+        ) oa
+        <trim prefix="where" prefixOverrides="and">
+            <if test="id != null and id != '' ">
+                oa.id =#{id}
+            </if>
+            <if test="documentNumber != null and documentNumber != '' ">
+                and oa.document_number like "%" #{documentNumber} "%"
+            </if>
+            <if test="projectName != null and projectName != '' ">
+                and oa.project_name like "%" #{projectName} "%"
+            </if>
+            <if test="attributionOrganization != null and attributionOrganization != '' ">
+                and oa.attribution_organization like "%" #{attributionOrganization} "%"
+            </if>
+            <if test="budgetDutyDepartment != null and budgetDutyDepartment != '' ">
+                and oa.budget_duty_department like "%" #{budgetDutyDepartment} "%"
+            </if>
+            <if test="startTime != null and startTime != '' ">
+                <![CDATA[ and DATE_FORMAT(oa.apply_date, '%Y-%m-%d') >= DATE_FORMAT(#{startTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="endTime != null and endTime != '' ">
+                <![CDATA[ and DATE_FORMAT(oa.apply_date, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d') ]]>
+            </if>
+            <if test="alertNode != null and alertNode != '' ">
+                and oa.alert_node=#{alertNode}
+            </if>
+        </trim>
+    </select>
+
+</mapper>

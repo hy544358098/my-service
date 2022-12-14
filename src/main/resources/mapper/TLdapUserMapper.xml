@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.crc.business.independent.dao.TLdapUserDao">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap type="com.crc.business.independent.model.entity.TLdapUser" id="result">
+        <id column="id" property="id"/>
+        <result column="usr_login" property="usrLogin"/>
+        <result column="usr_password" property="usrPassword"/>
+        <result column="usr_last_name" property="usrLastName"/>
+        <result column="usr_udf_lastnamechn" property="usrUdfLastnamechn"/>
+        <result column="usr_first_name" property="usrFirstName"/>
+        <result column="usr_udf_firstnameechn" property="usrUdfFirstnameechn"/>
+        <result column="usr_name" property="usrName"/>
+        <result column="usr_display_name" property="usrDisplayName"/>
+        <result column="usr_udf_nationalidlast4" property="usrUdfNationalidlast4"/>
+        <result column="usr_email" property="usrEmail"/>
+        <result column="usr_udf_buid" property="usrUdfBuid"/>
+        <result column="usr_udf_setid" property="usrUdfSetid"/>
+        <result column="usr_ldap_guid" property="usrLdapGuid"/>
+        <result column="usr_emp_no" property="usrEmpNo"/>
+        <result column="act_name" property="actName"/>
+        <result column="usr_udf_deptid" property="usrUdfDeptid"/>
+        <result column="usr_mobile" property="usrMobile"/>
+        <result column="usr_start_date" property="usrStartDate"/>
+        <result column="usr_end_date" property="usrEndDate"/>
+    </resultMap>
+
+    <select id="list" resultMap="result">
+        SELECT s.id,
+        s.usr_login,
+        s.usr_name,
+        s.act_name,
+        s.usr_mobile,
+        s.usr_email,
+        s.create_time,
+        s.usr_emp_no,
+        s.usr_udf_deptid
+        FROM t_ldap_user s
+        <trim prefix="where" prefixOverrides="and">
+            s.is_enable != 0
+            <if test="param.usrLogin != null and param.usrLogin != '' ">
+                and s.usr_login=#{param.usrLogin}
+            </if>
+            <if test="param.orgCode != null and param.orgCode != '' ">
+                and s.usr_udf_deptid=#{param.orgCode}
+            </if>
+            <if test="param.usrName != null and param.usrName != '' ">
+                and s.usr_name like "%"#{param.usrName}"%"
+            </if>
+        </trim>
+    </select>
+</mapper>
