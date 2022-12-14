@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.ApprovalDao">
 
 	<!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.entity.ApprovalEntity" id="tOaApprovalMap">
+    <resultMap type="com.x.business.oa.model.entity.ApprovalEntity" id="tOaApprovalMap">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="number" column="number"/>

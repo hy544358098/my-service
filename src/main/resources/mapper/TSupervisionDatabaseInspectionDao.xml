@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.independent.dao.SupervisionDatabaseInspectionDao">
 
 	<!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.independent.model.entity.SupervisionDatabaseInspection" id="tSupervisionDatabaseInspectionMap">
+    <resultMap type="com.x.business.independent.model.entity.SupervisionDatabaseInspection" id="tSupervisionDatabaseInspectionMap">
         <result property="id" column="id"/>
         <result property="year" column="year"/>
         <result property="handleStatus" column="handle_status"/>
@@ -34,7 +34,7 @@
     </resultMap>
 
 
-    <select id="statisticsOne" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
+    <select id="statisticsOne" resultType="com.x.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
         select * from (
                           select #{date}-6 year,count(*) total from t_supervision_database_inspection where year=#{date}-6 UNION
                           select #{date}-5 year,count(*) total from t_supervision_database_inspection where year=#{date}-5 UNION
@@ -46,12 +46,12 @@
                       ) a
     </select>
 
-    <select id="statisticsTwo" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo">
+    <select id="statisticsTwo" resultType="com.x.business.independent.model.vo.result.DatabaseStatisticsVo">
         select problem_clue_field,count(*) total from t_supervision_database_inspection GROUP BY problem_clue_field
     </select>
 
 
-    <select id="statisticsThree" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
+    <select id="statisticsThree" resultType="com.x.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
         select * from (
                           select #{date} year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date} and punishment_type is not null GROUP BY punishment_type  UNION
                           select #{date}-1 year,punishment_type,count(*) total from t_supervision_database_inspection where year=#{date}-1 and punishment_type is not null GROUP BY punishment_type  UNION
@@ -64,7 +64,7 @@
 
     </select>
 
-    <select id="statisticsFour" resultType="com.crc.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
+    <select id="statisticsFour" resultType="com.x.business.independent.model.vo.result.DatabaseStatisticsVo" parameterType="String">
         select
             (select IFNULL(SUM(money1),0) ChaseDirtyMoney from (
                                                          select SUM(violation_money) money1 from t_supervision_database_inspection UNION

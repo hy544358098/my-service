@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.ActiveFormDao">
 
 	<!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.entity.ActiveFormEntity" id="tOaActiveFormMap">
+    <resultMap type="com.x.business.oa.model.entity.ActiveFormEntity" id="tOaActiveFormMap">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="tableName" column="table_name"/>

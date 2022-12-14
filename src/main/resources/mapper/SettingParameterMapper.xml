@@ -3,7 +3,7 @@
 
 
 <mapper namespace="com.crc.business.independent.dao.SettingParameterDao">
-    <resultMap id="resultData" type="com.crc.business.independent.model.vo.result.SettingParameterVo">
+    <resultMap id="resultData" type="com.x.business.independent.model.vo.result.SettingParameterVo">
         <result column="uid" property="uid"></result>
         <result column="dictionary_id" property="dictionaryId"></result>
         <result column="type" property="type"></result>
@@ -12,7 +12,7 @@
         <result column="remark" property="remark"></result>
         <result column="extract_amount" property="extractAmount"></result>
         <collection property="list"
-                    ofType="com.crc.business.independent.model.vo.result.SettingParamConditionVo">
+                    ofType="com.x.business.independent.model.vo.result.SettingParamConditionVo">
             <id column="id"></id>
             <result column="is_information" property="isInformation"></result>
             <result column="information" property="information"></result>
@@ -28,7 +28,7 @@
         </collection>
     </resultMap>
 
-    <select id="list" resultType="com.crc.business.independent.model.vo.result.SettingParameterListVo">
+    <select id="list" resultType="com.x.business.independent.model.vo.result.SettingParameterListVo">
         SELECT
         sp.uid,
         sd.type_name dictionaryName,
@@ -49,7 +49,7 @@
         order by sp.create_time desc
     </select>
 
-    <select id="getListByType" resultType="com.crc.business.independent.model.vo.result.SettingParameterListVo">
+    <select id="getListByType" resultType="com.x.business.independent.model.vo.result.SettingParameterListVo">
         SELECT sp.uid,
         sd.type_name dictionaryName,
         sd.type_code typeCode,

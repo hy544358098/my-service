@@ -4,7 +4,7 @@
 
 <mapper namespace="com.crc.business.oa.dao.PendingDao">
 
-    <select id="pending" resultType="com.crc.business.oa.model.vo.result.PendingVo">
+    <select id="pending" resultType="com.x.business.oa.model.vo.result.PendingVo">
         select * from
         <choose>
             <when test="param.roleName != null and param.roleName =='大区观察员'">
@@ -39,7 +39,7 @@
         order by update_time desc
     </select>
 
-    <select id="already" resultType="com.crc.business.oa.model.vo.result.PendingVo">
+    <select id="already" resultType="com.x.business.oa.model.vo.result.PendingVo">
         select * from
         <choose>
             <when test="param.roleName != null and param.roleName =='大区观察员'">
@@ -71,7 +71,7 @@
     </select>
 
 
-    <select id="findCompetence" resultType="com.crc.business.oa.model.vo.result.PendingVo">
+    <select id="findCompetence" resultType="com.x.business.oa.model.vo.result.PendingVo">
         select *
         from v_pending_staff a
         where
@@ -103,7 +103,7 @@
     </select>
 
 
-    <select id="informList" resultType="com.crc.business.oa.model.vo.result.InformVo">
+    <select id="informList" resultType="com.x.business.oa.model.vo.result.InformVo">
         select x.*,z.operation_people as 'warning_people' from
         (select 'engineerDisputeClaims' AS `table_name`,b.operator_name AS operator_name,b.id,b.uid,b.document_number,b.monitor_status,b.alert_node,a.by_operation_people,a.by_operation_people_id,a.operation_time,a.operation_name,a.operation_people,a.operation_people_id from t_oa_operation a
         LEFT JOIN t_oa_cost_disputeclaims b ON a.uid=b.uid

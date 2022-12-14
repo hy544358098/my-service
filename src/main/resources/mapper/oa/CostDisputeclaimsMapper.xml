@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.CostDisputeclaimsDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.CostDisputeClaimsVO" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.CostDisputeClaimsVO" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="documentNumber" column="document_number"/>
@@ -118,7 +118,7 @@
         order by t.update_time desc
     </select>
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO">
         SELECT count(*) total,
         count(case when has_read = 'beread' then 1 end) beread,
         count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
@@ -166,7 +166,7 @@
         </trim>
     </select>
 
-    <select id="statistics" resultType="com.crc.business.oa.model.vo.result.CostStatisticsVo">
+    <select id="statistics" resultType="com.x.business.oa.model.vo.result.CostStatisticsVo">
         select statistics_city_name, SUM(both_agreed_amount) bothAgreedAmount
         from t_oa_cost_disputeclaims
         where statistics_city_name is not null

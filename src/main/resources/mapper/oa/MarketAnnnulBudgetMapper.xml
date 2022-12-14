@@ -3,7 +3,7 @@
 
 
 <mapper namespace="com.crc.business.oa.dao.MarketingAnnualBudgetDao">
-    <resultMap id="result" type="com.crc.business.oa.model.vo.result.MarketingAnnualBudgetVO">
+    <resultMap id="result" type="com.x.business.oa.model.vo.result.MarketingAnnualBudgetVO">
         <result column="uid" property="uid"></result>
         <result column="document_number" property="documentNumber"></result>
         <result column="apply_date" property="applyDate"></result>
@@ -92,7 +92,7 @@
         order by t.update_time desc
     </select>
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO">
         select count(*) total,
         count( CASE WHEN t.has_read = 'beread' THEN 1 END ) beread,
         count( CASE WHEN t.monitor_status = 'special_attention' THEN 1 END ) specialAttention,

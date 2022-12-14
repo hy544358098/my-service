@@ -3,7 +3,7 @@
 
 
 <mapper namespace="com.crc.business.independent.dao.SettingParameterConditionDao">
-    <resultMap id="resultData" type="com.crc.business.independent.model.vo.result.SettingParamConditionVo">
+    <resultMap id="resultData" type="com.x.business.independent.model.vo.result.SettingParamConditionVo">
         <result column="type" property="type"></result>
         <result column="is_information" property="isInformation"></result>
         <result column="information" property="information"></result>

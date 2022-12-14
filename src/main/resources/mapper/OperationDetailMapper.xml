@@ -5,7 +5,7 @@
 
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.independent.model.entity.OperationDetail" id="result">
+    <resultMap type="com.x.business.independent.model.entity.OperationDetail" id="result">
         <result property="id" column="id"/>
         <result property="supervisionId" column="supervision_id"/>
         <result property="operationName" column="operation_name"/>
@@ -18,7 +18,7 @@
     </resultMap>
 
     <select id="authority" parameterType="String"
-            resultType="com.crc.business.independent.model.entity.OperationDetail">
+            resultType="com.x.business.independent.model.entity.OperationDetail">
         select *
         from t_operation_detail
         where
@@ -50,7 +50,7 @@
     </select>
 
 
-    <select id="findCompetence" resultType="com.crc.business.independent.model.entity.OperationDetail">
+    <select id="findCompetence" resultType="com.x.business.independent.model.entity.OperationDetail">
         select *
         from t_operation_detail
         where supervision_id = #{supervisionId}

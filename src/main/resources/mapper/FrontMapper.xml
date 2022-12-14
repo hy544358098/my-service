@@ -3,7 +3,7 @@
 
 
 <mapper namespace="com.crc.business.independent.dao.FrontDao">
-    <select id="ownerDataCount" resultType="com.crc.business.independent.model.vo.result.OwnerDataCount">
+    <select id="ownerDataCount" resultType="com.x.business.independent.model.vo.result.OwnerDataCount">
         SELECT all_supervision        allSupervision,
                day_supervision       daySupervision,
                sampling_supervision  samplingSupervision,
@@ -11,7 +11,7 @@
         FROM v_owner_data_count
     </select>
 
-    <select id="cityDataCount" resultType="com.crc.business.independent.model.vo.result.CityDateCount">
+    <select id="cityDataCount" resultType="com.x.business.independent.model.vo.result.CityDateCount">
         SELECT xa_count   xaCount,
                cq_count   cqCount,
                km_count   kmCount,
@@ -24,7 +24,7 @@
         FROM v_oa_city_count
     </select>
 
-    <select id="businessDataCount" resultType="com.crc.business.independent.model.vo.result.BusinessDataCount">
+    <select id="businessDataCount" resultType="com.x.business.independent.model.vo.result.BusinessDataCount">
         SELECT project_change_count         projectChangeCount,
                designl_change_count         designChangeCount,
                annual_budget_count          annualBudgetCount,
@@ -40,7 +40,7 @@
         FROM v_oa_data_count
     </select>
 
-    <select id="statusCount" resultType="com.crc.business.independent.model.vo.result.StatusCount">
+    <select id="statusCount" resultType="com.x.business.independent.model.vo.result.StatusCount">
         select
             (select count(*) from (
                 select *  from v_pending_supervisor where (

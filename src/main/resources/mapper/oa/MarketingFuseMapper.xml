@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.MarketingFuseDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.MarketingFuseVo" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.MarketingFuseVo" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="title" column="title"/>
@@ -105,8 +105,8 @@
     </select>
 
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
-            parameterType="com.crc.business.oa.model.vo.request.MarketingFuseParam">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.x.business.oa.model.vo.request.MarketingFuseParam">
         select count(*) total,
         count(case when has_read = 'beread' then 1 end) beread,
         count(case when monitor_status = 'special_attention' then 1 end) specialAttention,

@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.OaOperateDao">
 
 	<!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.entity.OaOperateEntity" id="result">
+    <resultMap type="com.x.business.oa.model.entity.OaOperateEntity" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="operationName" column="operation_name"/>
@@ -34,7 +34,7 @@
         select alert_node from ${tableName} where uid=#{uid}
     </select>
 
-    <select id="findCompetence" resultType="com.crc.business.oa.model.entity.OaOperateEntity" >
+    <select id="findCompetence" resultType="com.x.business.oa.model.entity.OaOperateEntity" >
         select * from t_oa_operation
         where uid=#{supervisionId} and operation_name='transfer' and by_operation_people_id=#{operationPeopleId}
           and operation_time>IFNULL

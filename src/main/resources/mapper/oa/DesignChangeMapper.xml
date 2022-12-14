@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.DesignChangeDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.DesignChangeVo" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.DesignChangeVo" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="documentNumber" column="document_number"/>
@@ -148,8 +148,8 @@
     </select>
 
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
-            parameterType="com.crc.business.oa.model.vo.request.DesignChangeParam">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.x.business.oa.model.vo.request.DesignChangeParam">
         select count(*) total,
         count(case when has_read='beread'then 1 end) beread,
         count(case when monitor_status='special_attention'then 1 end) specialAttention,
@@ -199,7 +199,7 @@
         </trim>
     </select>
 
-    <select id="statisticReport" resultType="com.crc.business.oa.model.vo.result.StatisticCommonVo">
+    <select id="statisticReport" resultType="com.x.business.oa.model.vo.result.StatisticCommonVo">
         SELECT a.`statistics_city_name`      cityName,
                SUM(CONVERT(IFNULL(a.`change_total_estimated_amount`, 0),
                            DECIMAL (10, 2))) total

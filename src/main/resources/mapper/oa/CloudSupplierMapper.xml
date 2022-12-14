@@ -3,7 +3,7 @@
 
 
 <mapper namespace="com.crc.business.oa.dao.CloudSupplierDao">
-    <resultMap id="result" type="com.crc.business.oa.model.vo.result.CloudSupplierVO">
+    <resultMap id="result" type="com.x.business.oa.model.vo.result.CloudSupplierVO">
         <result column="uid" property="uid"></result>
         <result column="document_number" property="documentNumber"></result>
         <result column="title" property="title"></result>
@@ -83,7 +83,7 @@
         order by t.update_time desc
     </select>
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO">
         select count(*) total,
         count(case when t.has_read='beread'then 1 end) beread,
         count(case when t.monitor_status='special_attention'then 1 end) specialAttention,
@@ -126,7 +126,7 @@
     </select>
 
 
-    <select id="statistics" resultType="com.crc.business.oa.model.vo.result.CloudSupplierStatisticsVo">
+    <select id="statistics" resultType="com.x.business.oa.model.vo.result.CloudSupplierStatisticsVo">
         select a.statistics_city_name, a.uid, b.table_info, a.apply_dept, a.introduction,a.apply_date
         from t_oa_purchase_cloud_supplier a
                  LEFT JOIN
@@ -143,7 +143,7 @@
     </select>
 
 
-    <select id="statisticsDay" resultType="com.crc.business.oa.model.vo.result.CloudSupplierStatisticsVo">
+    <select id="statisticsDay" resultType="com.x.business.oa.model.vo.result.CloudSupplierStatisticsVo">
         select a.statistics_city_name, a.uid, b.table_info, a.apply_dept, a.introduction,a.apply_date
         from t_oa_purchase_cloud_supplier a
                  LEFT JOIN
@@ -155,8 +155,8 @@
     </select>
 
 
-    <select id="statisticsPage" resultType="com.crc.business.oa.model.vo.result.CloudSupplierStatisticsVo"
-            parameterType="com.crc.business.oa.model.vo.request.CloudSupplierStatisticsParam">
+    <select id="statisticsPage" resultType="com.x.business.oa.model.vo.result.CloudSupplierStatisticsVo"
+            parameterType="com.x.business.oa.model.vo.request.CloudSupplierStatisticsParam">
         select a.statistics_city_name, a.uid,b.table_info,a.apply_dept,a.introduction,a.apply_date,a.approval_status
         from t_oa_purchase_cloud_supplier a
         LEFT JOIN

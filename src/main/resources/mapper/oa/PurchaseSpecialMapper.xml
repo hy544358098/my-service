@@ -5,7 +5,7 @@
 <mapper namespace="com.crc.business.oa.dao.PurchaseSpecialDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.PurchaseSpecialVo" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.PurchaseSpecialVo" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="documentNumber" column="document_number"/>
@@ -104,8 +104,8 @@
     </select>
 
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
-            parameterType="com.crc.business.oa.model.vo.request.PurchaseSpecialParam">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.x.business.oa.model.vo.request.PurchaseSpecialParam">
         select count(*) total,
         count(case when has_read = 'beread' then 1 end) beread,
         count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
@@ -157,7 +157,7 @@
         </trim>
     </select>
 
-    <select id="statisticReport" resultType="com.crc.business.oa.model.vo.result.PurchaseSpecialStatisticsVo">
+    <select id="statisticReport" resultType="com.x.business.oa.model.vo.result.PurchaseSpecialStatisticsVo">
         SELECT a.statistics_city_name                           cityName,
                 count(*)      AS yearTotal
         FROM t_oa_purchase_special a
@@ -171,7 +171,7 @@
 
     </select>
 
-    <select id="statisticDayReport" resultType="com.crc.business.oa.model.vo.result.PurchaseSpecialStatisticsVo">
+    <select id="statisticDayReport" resultType="com.x.business.oa.model.vo.result.PurchaseSpecialStatisticsVo">
         SELECT a.statistics_city_name                           cityName,
         SUM((TO_DAYS(a.apply_date) = TO_DAYS(NOW()))) AS todayTotal
         FROM t_oa_purchase_special a

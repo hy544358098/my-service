@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.OrganizationLifeDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.OrganizationLifeVo" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.OrganizationLifeVo" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="associationName" column="association_name"/>
@@ -138,8 +138,8 @@
     </select>
 
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
-            parameterType="com.crc.business.oa.model.vo.request.OrganizationLifeParam">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.x.business.oa.model.vo.request.OrganizationLifeParam">
         select count(*) total,
         count(case when has_read = 'beread' then 1 end) beread,
         count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
@@ -234,7 +234,7 @@
         ) su
     </select>
 
-    <select id="statistics" resultType="com.crc.business.oa.model.vo.result.LifeStatisticsVo">
+    <select id="statistics" resultType="com.x.business.oa.model.vo.result.LifeStatisticsVo">
         select
             (select type_code from t_dictionaries_detailed where classification_id=12 and classification_code='party_member_number' and classification_name='党员数') martyMemberTotal,
             (select COUNT(*) from t_dictionaries_detailed where classification_id=11 and type_name like '%党委%')partyCommittee,

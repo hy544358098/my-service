@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.MarketingApplyDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.MarketingApplyVo" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.MarketingApplyVo" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="title" column="title"/>
@@ -96,8 +96,8 @@
     </select>
 
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
-            parameterType="com.crc.business.oa.model.vo.request.MarketingApplyParam">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.x.business.oa.model.vo.request.MarketingApplyParam">
         select count(*) total,
         count(case when has_read = 'beread' then 1 end) beread,
         count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
@@ -149,7 +149,7 @@
         </trim>
     </select>
 
-    <select id="statisticReport" resultType="com.crc.business.oa.model.vo.result.StatisticCommonVo">
+    <select id="statisticReport" resultType="com.x.business.oa.model.vo.result.StatisticCommonVo">
         SELECT a.statistics_city_name                                   cityName,
                SUM(CONVERT(IFNULL(a.budget_total, 0), DECIMAL (10, 2))) total
         FROM t_oa_marketing_apply a
@@ -164,7 +164,7 @@
         GROUP BY a.statistics_city_name
     </select>
 
-    <select id="statisticList" resultType="com.crc.business.oa.model.vo.result.MarketingApplySubFormVo">
+    <select id="statisticList" resultType="com.x.business.oa.model.vo.result.MarketingApplySubFormVo">
         SELECT a.uid,
         a.project_name projectName,
         a.budget_month budgetMonth,

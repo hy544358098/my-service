@@ -6,7 +6,7 @@
 
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.ProjectSinglesourceVo" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.ProjectSinglesourceVo" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="documentNumber" column="document_number"/>
@@ -125,8 +125,8 @@
     </select>
 
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO"
-            parameterType="com.crc.business.oa.model.vo.request.PurchaseSinglesourceParam">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO"
+            parameterType="com.x.business.oa.model.vo.request.PurchaseSinglesourceParam">
         select count(*) total,
         count(case when has_read='beread'then 1 end) beread,
         count(case when monitor_status='special_attention'then 1 end) specialAttention,
@@ -183,7 +183,7 @@
     </select>
 
 
-    <select id="statisticsYear" resultType="com.crc.business.oa.model.vo.result.PurchaseSinglesourceStatisticsVo">
+    <select id="statisticsYear" resultType="com.x.business.oa.model.vo.result.PurchaseSinglesourceStatisticsVo">
         select statistics_city_name statistics_city_name_year, estimated_amount estimated_amount_year
         from t_oa_purchase_singlesource
         where statistics_city_name is not null
@@ -195,7 +195,7 @@
         </if>
     </select>
 
-    <select id="statisticsDay" resultType="com.crc.business.oa.model.vo.result.PurchaseSinglesourceStatisticsVo">
+    <select id="statisticsDay" resultType="com.x.business.oa.model.vo.result.PurchaseSinglesourceStatisticsVo">
         select statistics_city_name statistics_city_name_day, estimated_amount estimated_amount_day
         from t_oa_purchase_singlesource
         where TO_DAYS(apply_date) = TO_DAYS(NOW())

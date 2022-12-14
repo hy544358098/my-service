@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.independent.dao.SupervisionDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.independent.model.entity.Supervision" id="result">
+    <resultMap type="com.x.business.independent.model.entity.Supervision" id="result">
         <result property="id" column="id"/>
         <result property="documentsNumber" column="documents_number"/>
         <result property="status" column="status"/>
@@ -32,8 +32,8 @@
     </resultMap>
 
 
-    <select id="list" resultType="com.crc.business.independent.model.vo.result.SupervisionVo"
-            parameterType="com.crc.business.independent.model.vo.request.SupervisionParam">
+    <select id="list" resultType="com.x.business.independent.model.vo.result.SupervisionVo"
+            parameterType="com.x.business.independent.model.vo.request.SupervisionParam">
         select * from (
         <choose>
             <when test="param.roleName != null and param.roleName !='大区观察员'">
@@ -151,8 +151,8 @@
     </select>
 
 
-    <select id="excelList" resultType="com.crc.business.independent.model.vo.result.SupervisionVo"
-            parameterType="com.crc.business.independent.model.vo.request.SupervisionParam">
+    <select id="excelList" resultType="com.x.business.independent.model.vo.result.SupervisionVo"
+            parameterType="com.x.business.independent.model.vo.request.SupervisionParam">
         select * from (
         <choose>
             <when test="roleName != null and roleName !='大区观察员'">
@@ -265,8 +265,8 @@
     </select>
 
 
-    <select id="statisticalData" resultType="com.crc.business.independent.model.vo.result.MySupervisionCountVo"
-            parameterType="com.crc.business.independent.model.vo.request.SupervisionParam">
+    <select id="statisticalData" resultType="com.x.business.independent.model.vo.result.MySupervisionCountVo"
+            parameterType="com.x.business.independent.model.vo.request.SupervisionParam">
         select count(*) total,
         count(case when status = 'reject' then 1 end) reject,
         count(case when status = 'approval' then 1 end) approval,
@@ -378,7 +378,7 @@
         ) su
     </select>
 
-    <select id="statisticsOne" resultType="com.crc.business.independent.model.vo.result.SupervisionStatisticsVo">
+    <select id="statisticsOne" resultType="com.x.business.independent.model.vo.result.SupervisionStatisticsVo">
         select submit_department, count(*) total
         from t_my_supervision
         where supervision_type = 'personal'
@@ -388,7 +388,7 @@
         GROUP BY submit_department
     </select>
 
-    <select id="statisticsTwo" resultType="com.crc.business.independent.model.vo.result.SupervisionStatisticsVo">
+    <select id="statisticsTwo" resultType="com.x.business.independent.model.vo.result.SupervisionStatisticsVo">
         select (select count(*) from t_my_supervision where supervision_type = 'personal' and del_type = 'N') total,
                (select count(*)
                 from t_my_supervision
@@ -415,7 +415,7 @@
     </select>
 
 
-    <select id="statisticsThree" resultType="com.crc.business.independent.model.vo.result.SupervisionStatisticsVo"
+    <select id="statisticsThree" resultType="com.x.business.independent.model.vo.result.SupervisionStatisticsVo"
             parameterType="String">
         select status, count(*) total
         from t_my_supervision

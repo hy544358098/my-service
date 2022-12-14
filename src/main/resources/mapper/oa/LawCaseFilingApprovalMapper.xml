@@ -4,7 +4,7 @@
 <mapper namespace="com.crc.business.oa.dao.LawCaseFilingApprovalDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.crc.business.oa.model.vo.result.LawCaseFilingApprovalVO" id="result">
+    <resultMap type="com.x.business.oa.model.vo.result.LawCaseFilingApprovalVO" id="result">
         <result property="id" column="id"/>
         <result property="uid" column="uid"/>
         <result property="documentNumber" column="document_number"/>
@@ -120,7 +120,7 @@
         order by t.update_time desc
     </select>
 
-    <select id="statisticalData" resultType="com.crc.business.oa.model.vo.result.OaCountVO">
+    <select id="statisticalData" resultType="com.x.business.oa.model.vo.result.OaCountVO">
         select count(*) total,
         count(case when has_read = 'beread' then 1 end) beread,
         count(case when monitor_status = 'special_attention' then 1 end) specialAttention,
@@ -171,7 +171,7 @@
         </trim>
     </select>
 
-    <select id="statistics" resultType="com.crc.business.oa.model.vo.result.LawCaseStatisticsVo">
+    <select id="statistics" resultType="com.x.business.oa.model.vo.result.LawCaseStatisticsVo">
         select statistics_city_name, count(*) total
         from t_oa_law_casefilingapproval
         where statistics_city_name is not null

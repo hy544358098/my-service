@@ -3,7 +3,7 @@
 <mapper namespace="com.crc.business.independent.dao.TLdapUserDao">
 
     <!-- 通用查询映射结果 -->
-    <resultMap type="com.crc.business.independent.model.entity.TLdapUser" id="result">
+    <resultMap type="com.x.business.independent.model.entity.TLdapUser" id="result">
         <id column="id" property="id"/>
         <result column="usr_login" property="usrLogin"/>
         <result column="usr_password" property="usrPassword"/>
